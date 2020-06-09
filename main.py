@@ -5,19 +5,25 @@ from pydealer import Card
 
 kozer = 'Diamonds'
 def main():
+	# initialize stuff - can be put in init() later
 	deck = createDurakDeck()
-	discard = list()
+	discard = list() # TODO: implement
 	hands = list()
 	deck.shuffle()
-	print("len(deck) before anything ", len(deck))
+
+	# deal 4 hands
 	for i in range(4):
 	    hands.append(deck.deal(6))
 
+	# assign a player to each hand
 	josh = Player("josh", hands[0])
 	manny = Player("manny", hands[1])
 	nua = Player("nua", hands[2])
 	adam = Player("adam", hands[3])
+
+	# plays a round, changes everyones hand + discard + deck accordingly
 	playARound(josh, nua, kozer)
+
 	print("\n------ After playARound --------\n")
 	print("joshs hand is now:")
 	printHand(josh.hand)
@@ -95,14 +101,14 @@ class Player:
 		printHand(self.hand, "\n")
 
 		# select card to defend
-		card_to_defend = selectCards(self.name, hand, "to defend")
+		card_to_defend = selectCards(self.name, hand, "to defend (OR 'take' TO TAKE)")
 
 		# check if user took
 		if ((card_to_defend == 'take') or (card_to_defend_with == 'take')):
 			return ('take', 'take')
 		
 		#select card to defend with
-		strCat = "to defend the [" + str(card_to_defend) + "] with "
+		strCat = "to defend the [" + str(card_to_defend) + "] with (OR 'take' TO TAKE)"
 		card_to_defend_with = selectCards(self.name,self.hand, strCat)
 		
 		# check if user took
@@ -121,19 +127,25 @@ def printHand(hand, arg1='', arg2='', arg3=''):
 	print(arg1, arg2, arg3)
 		
 def selectCards(name, stack, msg_append = "", take=False):
+	returnList = [] 
+	# if one item in list return item
 	if (len(stack) == 1):
 		return stack[0]
-	
-	returnList = []
+
+	# print stuff
 	message = "Select a card " + msg_append
 	print(message, name)
 	stack = durakSort(stack)
 	for i in range(len(stack)):
 		print(i, ":", stack[i])
+
+	# collect user input
 	user_input = input("Enter Selection (number, space seperated for multiple) here: ")
+
+	# return user selection
 	print("Excelent Choice! You selected:")
 	if (user_input.lower() == 'take'):
-		print("ok yo takin")
+		print("TO TAKE U LOZER")
 		return "take"
 	for selection in user_input.split():
 		returnList.append(stack[int(selection)])
@@ -147,6 +159,7 @@ def checkBeats(atkCard, defCard, kozer):
 		return (defCard.suit == kozer) and (defCard.gt(atkCard) or atkCard.suit != kozer)
 
 def durakSort(arr):
+	# sort kozers and nonKozers seperately
 	kozers = []
 	nonKozers = []
 	for card in arr:
@@ -181,5 +194,6 @@ def createDurakDeck():
 	deck_.empty()
 	deck_.add([Card(value='6', suit='Diamonds'), Card(value='6', suit='Clubs'), Card(value='6', suit='Hearts'), Card(value='6', suit='Spades'), Card(value='7', suit='Diamonds'), Card(value='7', suit='Clubs'), Card(value='7', suit='Hearts'), Card(value='7', suit='Spades'), Card(value='8', suit='Diamonds'), Card(value='8', suit='Clubs'), Card(value='8', suit='Hearts'), Card(value='8', suit='Spades'), Card(value='9', suit='Diamonds'), Card(value='9', suit='Clubs'), Card(value='9', suit='Hearts'), Card(value='9', suit='Spades'), Card(value='10', suit='Diamonds'), Card(value='10', suit='Clubs'), Card(value='10', suit='Hearts'), Card(value='10', suit='Spades'), Card(value='Jack', suit='Diamonds'), Card(value='Jack', suit='Clubs'), Card(value='Jack', suit='Hearts'), Card(value='Jack', suit='Spades'), Card(value='Queen', suit='Diamonds'), Card(value='Queen', suit='Clubs'), Card(value='Queen', suit='Hearts'), Card(value='Queen', suit='Spades'), Card(value='King', suit='Diamonds'), Card(value='King', suit='Clubs'), Card(value='King', suit='Hearts'), Card(value='King', suit='Spades'), Card(value='Ace', suit='Diamonds'), Card(value='Ace', suit='Clubs'), Card(value='Ace', suit='Hearts'), Card(value='Ace', suit='Spades')])
 	return deck_
+
 if __name__ == "__main__":
 	main()
