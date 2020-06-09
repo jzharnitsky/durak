@@ -55,15 +55,16 @@ def playARound(attacker, defender, kozer_suit):
 			defender.take(_buffer + _cardsToDefend)
 			_cardsToDefend = []
 			return
+			
+		#print("right before armageddon, type(card_to_def) =", type(card_to_def))
+		#print("right before armageddon, card_to_def =", card_to_def)
 		
-		print("right before armageddon, type(card_to_def) =", type(card_to_def))
-		print("right before armageddon, card_to_def =", card_to_def)
-		
+		# bug fixing
 		if type(card_to_def) == list:
 			card_to_def = card_to_def[0]
 		card_to_def_with = card_to_def_with[0]
 
-		# TODO: check if cards actually beats
+		# Check if cards actually beats
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
 			# remove card_to_def from _cardsToDefend and add to buffer
 			_cardsToDefend.remove(card_to_def)
@@ -82,6 +83,7 @@ def playARound(attacker, defender, kozer_suit):
 			print("you cant beat the", card_to_def, "with the", card_to_def_with)
 		
 	# _cardsToBeat is empty
+	#discard.add(_buffer)
 	
 
 class Player:
@@ -104,7 +106,7 @@ class Player:
 		card_to_defend = selectCards(self.name, hand, "to defend (OR 'take' TO TAKE)")
 
 		# check if user took
-		if ((card_to_defend == 'take') or (card_to_defend_with == 'take')):
+		if (card_to_defend == 'take'):
 			return ('take', 'take')
 		
 		#select card to defend with
