@@ -6,6 +6,7 @@ from pydealer import Card
 kozer = 'Diamonds'
 def main():
 	deck = createDurakDeck()
+	discard = list()
 	hands = list()
 	deck.shuffle()
 	print("len(deck) before anything ", len(deck))
@@ -17,14 +18,20 @@ def main():
 	nua = Player("nua", hands[2])
 	adam = Player("adam", hands[3])
 	playARound(josh, nua, kozer)
+	print("\n------ After playARound --------\n")
+	print("joshs hand is now:")
+	printHand(josh.hand)
+	print("nuas hand is now:")
+	printHand(nua.hand)
 	
 
 
 def playARound(attacker, defender, kozer_suit):
 	print("welcome! kozer = ", kozer_suit)
 
-	# internal variable to store 'not-yet-defended' cards on the table
+	# internal variables
 	_cardsToDefend = pd.stack.Stack()
+	_buffer = pd.stack.Stack()
 
 	# attacker attacks
 	print(attacker.name, "- select card to attack with:")
@@ -34,8 +41,14 @@ def playARound(attacker, defender, kozer_suit):
 	# defender defends until no more cards to defend
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
 	while(len(_cardsToDefend) > 0):
-		# defender selects card_to_defend and card_to_defend_with
+		# defender selects card_to_defend and card_to_defend_with (or take)
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
+
+		# check if user took
+		if (card_to_def == 'take'):
+			defender.take(_buffer + _cardsToDefend)
+			_cardsToDefend = []
+			return
 		
 		print("right before armageddon, type(card_to_def) =", type(card_to_def))
 		print("right before armageddon, card_to_def =", card_to_def)
@@ -46,8 +59,11 @@ def playARound(attacker, defender, kozer_suit):
 
 		# TODO: check if cards actually beats
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
-			# remove card_to_def from _cardsToDefend
+			# remove card_to_def from _cardsToDefend and add to buffer
 			_cardsToDefend.remove(card_to_def)
+			_buffer.add(card_to_def)
+
+			# print success message
 			print("/////////// ", end='')
 			print(defender.name, "succesfully defends the ", card_to_def, "with the", end='')
 			print(card_to_def_with," \\\\\\\\\\\\\\\\\\\\\\")
@@ -59,7 +75,8 @@ def playARound(attacker, defender, kozer_suit):
 			print("\n|!|!|!|!|!|!|THAT DOESNT WORK FOOL||||||||||||\n")
 			print("you cant beat the", card_to_def, "with the", card_to_def_with)
 		
-
+	# _cardsToBeat is empty
+	
 
 class Player:
 	def __init__(self, name, hand):
@@ -79,13 +96,24 @@ class Player:
 
 		# select card to defend
 		card_to_defend = selectCards(self.name, hand, "to defend")
+
+		# check if user took
+		if ((card_to_defend == 'take') or (card_to_defend_with == 'take')):
+			return ('take', 'take')
 		
 		#select card to defend with
 		strCat = "to defend the [" + str(card_to_defend) + "] with "
 		card_to_defend_with = selectCards(self.name,self.hand, strCat)
+		
+		# check if user took
+		if ((card_to_defend == 'take') or (card_to_defend_with == 'take')):
+			return ('take', 'take')
 
-		# return both
+		# return if user defended successfully
 		return(card_to_defend, card_to_defend_with)
+	
+	def take(self, junk):
+		self.hand.append(junk)
 
 def printHand(hand, arg1='', arg2='', arg3=''):
 	for card in hand:
@@ -106,7 +134,7 @@ def selectCards(name, stack, msg_append = "", take=False):
 	print("Excelent Choice! You selected:")
 	if (user_input.lower() == 'take'):
 		print("ok yo takin")
-		# user.takes()fucntoin
+		return "take"
 	for selection in user_input.split():
 		returnList.append(stack[int(selection)])
 		print(stack[int(selection)])
