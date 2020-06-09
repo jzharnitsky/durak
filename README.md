@@ -1,6 +1,6 @@
 # durak
 
-- Run test.py
+- Run main.py
 - Follow onscreen instructions
 
 
