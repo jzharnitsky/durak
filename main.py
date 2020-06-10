@@ -105,20 +105,13 @@ def playARound(attacker, defender, kozer_suit, discard):
 
 			# attacker optionally add cards
 			addCards = input(attacker.name + " enter 'y' or 'yes' to add more cards:")
-			print("you entered:", addCards)
 			if ((addCards.lower() == "y") or (addCards.lower() == "yes")):
-				cardsWereLegal = True
-				print(attacker.name,"- select card(s) to add to",defender.name,":")
-				cardsToAdd = attacker.attack()
-				for card in cardsToAdd:
-					#if ((card not in _buffer) and (card not in _cardsToDefend)):
-					if (5 < 3):
-						print("|!|!|!|!|!|!|!|!|!|!|", end='')
-						print(" You cant add the", card, end='')
-						print(" |!|!|!|!|!|!|!|!|!|!|") 	
-						cardsWereLegal = False
-				if (cardsWereLegal):
-					print("dope, adding:")
+				cardsToAdd = attacker.addCards()
+				# TODO: Insert varification of cardsToAdd here
+
+				# add cards to defeders queue of _cardsToDefend
+				if (len(cardsToAdd) > 0):
+					print("Dope, adding:")
 					for card in cardsToAdd:
 						print(card)
 						_cardsToDefend.append(card)
@@ -172,6 +165,11 @@ class Player:
 	def take(self, junk):
 		for item in list(junk):
 			self.hand.append(item)
+	def addCards(self):
+		# attack with any card
+		attack_cards = selectCards(self.name, self.hand, "to add on")
+		self.removeCards(attack_cards)
+		return attack_cards
 
 	def removeCards(self, cards):
 		self.hand = list(self.hand)
@@ -182,9 +180,7 @@ class Player:
 		for card in durakSort(self.hand):
 			symbol = prettyPrintSuit(card.suit)
 			print(symbol,card, symbol)
-		
-		
-		
+
 
 def prettyPrintSuit(suit):
 	l = {'Spades':   '♠','Diamonds': '♦','Hearts':   '♥','Clubs':    '♣', }
