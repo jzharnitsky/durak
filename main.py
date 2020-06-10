@@ -135,15 +135,20 @@ class Player:
 
 	def printHand(self):
 		for card in durakSort(self.hand):
-			print(card)
+			symbol = prettyPrintSuit(card.suit)
+			print(symbol,card, symbol)
 		
 		
 		
 
+def prettyPrintSuit(suit):
+	l = {'Spades':   '♠','Diamonds': '♦','Hearts':   '♥','Clubs':    '♣', }
+	return l[suit]
 
 def printHand(hand, arg1='', arg2='', arg3=''):
 	for card in durakSort(hand):
-		print(card)
+		symbol = prettyPrintSuit(card.suit)
+		print(symbol,card,symbol)
 	print(arg1, arg2, arg3)
 		
 def selectCards(name, stack, msg_append = ""):
@@ -157,7 +162,8 @@ def selectCards(name, stack, msg_append = ""):
 	print(message, name)
 	stack = durakSort(stack)
 	for i in range(len(stack)):
-		print(i, ":", stack[i])
+		symbol = prettyPrintSuit(stack[i].suit)
+		print(i, ":", symbol,stack[i],symbol)
 
 	# collect user input
 	user_input = input("Enter Selection (number, space seperated for multiple) here: ")
