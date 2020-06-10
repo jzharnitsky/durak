@@ -1,13 +1,13 @@
 import pydealer as pd
 import inspect
 from pydealer import Card
-
+# TODO: implement 'adding' cards
 
 kozer = 'Diamonds'
 def main():
 	# initialize stuff - can be put in init() later
 	deck = createDurakDeck()
-	discard = list() # TODO: implement
+	discard = list()
 	hands = list()
 	deck.shuffle()
 
@@ -31,6 +31,27 @@ def main():
 	nua.printHand()
 	print("\ndiscard is now:")
 	printHand(discard)
+	print("\nlen(deck) =", len(deck))
+	
+	take((josh, nua), deck, 6)
+	#playARound(nua, josh, kozer, discard)
+
+	print("\n\n------ After TAKE --------\n")
+	print("joshs hand is now:")
+	josh.printHand()
+	print("\nnuas hand is now:")
+	nua.printHand()
+	print("\nlen(deck) is now:")
+	print(len(deck))
+	
+
+# players must be in proper order of taking
+def take(players, deck, sizeFullHand):
+	for player in players:
+		while( len(player.hand) < 6):
+			player.take(deck.deal(1))
+		
+	
 
 def playARound(attacker, defender, kozer_suit, discard):
 	print("welcome! kozer = ", kozer_suit)
@@ -39,7 +60,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 	_cardsToDefend = []
 	_buffer = []
 
-	# attacker attacks
+	# attacker's initial attack
 	print(attacker.name, "- select card to attack with:")
 	print("\n//////////", attacker.name, "////////// ATTACK //////////", defender.name, "//////////")
 	_cardsToDefend = attacker.attack()
@@ -48,9 +69,10 @@ def playARound(attacker, defender, kozer_suit, discard):
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
 	while(len(_cardsToDefend) > 0):
 		# defender selects card_to_defend and card_to_defend_with (or take)
+		print("at line 51, defender boutta select cards for defending purposes")
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
 
-		# check if user took
+		# if defender took
 		if (card_to_def == 'take'):
 			defender.take(_buffer)
 			defender.take(_cardsToDefend)
@@ -80,6 +102,29 @@ def playARound(attacker, defender, kozer_suit, discard):
 			# remove card - this can be a function later hand.remove(card)
 			defender.hand = list(defender.hand)
 			defender.hand.remove(card_to_def_with)
+
+			# attacker optionally add cards
+			addCards = input(attacker.name + " enter 'y' or 'yes' to add more cards:")
+			print("you entered:", addCards)
+			if ((addCards.lower() == "y") or (addCards.lower() == "yes")):
+				cardsWereLegal = True
+				print(attacker.name,"- select card(s) to add to",defender.name,":")
+				cardsToAdd = attacker.attack()
+				for card in cardsToAdd:
+					#if ((card not in _buffer) and (card not in _cardsToDefend)):
+					if (5 < 3):
+						print("|!|!|!|!|!|!|!|!|!|!|", end='')
+						print(" You cant add the", card, end='')
+						print(" |!|!|!|!|!|!|!|!|!|!|") 	
+						cardsWereLegal = False
+				if (cardsWereLegal):
+					print("dope, adding:")
+					for card in cardsToAdd:
+						print(card)
+						_cardsToDefend.append(card)
+			else:
+				print(attacker.name, "dont wanna add more cards thats cool")
+					
 		else:
 			print("\n|!|!|!|!|!|!|THAT DOESNT WORK FOOL||||||||||||\n")
 			print("you cant beat the", card_to_def, "with the", card_to_def_with)
