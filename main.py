@@ -22,22 +22,22 @@ def main():
 	adam = Player("adam", hands[3])
 
 	# plays a round, changes everyones hand + discard + deck accordingly
-	playARound(josh, nua, kozer)
+	playARound(josh, nua, kozer, discard)
 
 	print("\n------ After playARound --------\n")
 	print("joshs hand is now:")
-	printHand(josh.hand)
-	print("nuas hand is now:")
-	printHand(nua.hand)
-	
+	josh.printHand()
+	print("\nnuas hand is now:")
+	nua.printHand()
+	print("\ndiscard is now:")
+	print(discard)
 
-
-def playARound(attacker, defender, kozer_suit):
+def playARound(attacker, defender, kozer_suit, discard):
 	print("welcome! kozer = ", kozer_suit)
 
 	# internal variables
-	_cardsToDefend = pd.stack.Stack()
-	_buffer = pd.stack.Stack()
+	_cardsToDefend = []
+	_buffer = []
 
 	# attacker attacks
 	print(attacker.name, "- select card to attack with:")
@@ -52,7 +52,8 @@ def playARound(attacker, defender, kozer_suit):
 
 		# check if user took
 		if (card_to_def == 'take'):
-			defender.take(_buffer + _cardsToDefend)
+			defender.take(_buffer)
+			defender.take(_cardsToDefend)
 			_cardsToDefend = []
 			return
 			
@@ -68,7 +69,8 @@ def playARound(attacker, defender, kozer_suit):
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
 			# remove card_to_def from _cardsToDefend and add to buffer
 			_cardsToDefend.remove(card_to_def)
-			_buffer.add(card_to_def)
+			_buffer.append(card_to_def)
+			_buffer.append(card_to_def_with)
 
 			# print success message
 			print("/////////// ", end='')
@@ -83,7 +85,8 @@ def playARound(attacker, defender, kozer_suit):
 			print("you cant beat the", card_to_def, "with the", card_to_def_with)
 		
 	# _cardsToBeat is empty
-	#discard.add(_buffer)
+	for card in _buffer:
+		discard.append(card)
 	
 
 class Player:
@@ -94,6 +97,7 @@ class Player:
 	def attack(self):
 		# attack with any card
 		attack_cards = selectCards(self.name, self.hand, "to attack with")
+		self.removeCards(attack_cards)
 		return attack_cards
 
 	def defend(self, hand):
@@ -121,14 +125,28 @@ class Player:
 		return(card_to_defend, card_to_defend_with)
 	
 	def take(self, junk):
-		self.hand.append(junk)
+		for item in list(junk):
+			self.hand.append(item)
+
+	def removeCards(self, cards):
+		self.hand = list(self.hand)
+		for card in cards:
+			self.hand.remove(card)
+
+	def printHand(self):
+		for card in durakSort(self.hand):
+			print(card)
+		
+		
+		
+
 
 def printHand(hand, arg1='', arg2='', arg3=''):
-	for card in hand:
+	for card in durakSort(hand):
 		print(card)
 	print(arg1, arg2, arg3)
 		
-def selectCards(name, stack, msg_append = "", take=False):
+def selectCards(name, stack, msg_append = ""):
 	returnList = [] 
 	# if one item in list return item
 	if (len(stack) == 1):
