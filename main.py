@@ -30,7 +30,7 @@ def main():
 	print("\nnuas hand is now:")
 	nua.printHand()
 	print("\ndiscard is now:")
-	print(discard)
+	printHand(discard)
 
 def playARound(attacker, defender, kozer_suit, discard):
 	print("welcome! kozer = ", kozer_suit)
