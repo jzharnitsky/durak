@@ -2,14 +2,49 @@ import pydealer as pd
 import inspect
 from pydealer import Card
 # TODO: implement 'adding' cards
-
 kozer = 'Diamonds'
+
 def main():
-	# initialize stuff - can be put in init() later
+	# params will be a struct later
+	josh, manny, nua, adam, kozer, deck, discard = initGame()
+	winner = playAGame(josh, nua, kozer, deck)
+	print("Game Over! Winner was", winner.name)
+
+	
+def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
+	while(True):
+		# plays a round, changes everyones hand + discard accordingly
+		playARound(attacker, defender, kozer, discard)
+
+		# take, changes everyones hands and deck accordingly
+		take((attacker, defender), deck, 6)
+		
+		# See if someone won
+		if ((len(deck) == 0) and (len(attacker.hand)==0)):
+			return attacker
+
+		if ((len(deck) == 0) and (len(defender.hand)==0)):
+			return defender
+
+		# some messages
+		print("\n\n------ After Round --------\n")
+		print(attacker.name,"hand is now:\n", attacker.prettyHand())
+		print(defender.name, "hand is now:\n",defender.prettyHand())
+		print("\nlen(deck) is now:", len(deck))
+
+
+		# switch places
+		temp = attacker
+		attacker = defender
+		defender = temp
+
+def initGame():
+	# initialize stuff
 	deck = createDurakDeck()
 	discard = list()
 	hands = list()
 	deck.shuffle()
+	kozer = 'Diamonds'
 
 	# deal 4 hands
 	for i in range(4):
@@ -21,31 +56,8 @@ def main():
 	nua = Player("nua", hands[2])
 	adam = Player("adam", hands[3])
 
-	# plays a round, changes everyones hand + discard + deck accordingly
-	playARound(josh, nua, kozer, discard)
+	return josh, manny, nua, adam, kozer, deck, discard
 
-	print("\n------ After playARound --------\n")
-	print("joshs hand is now:")
-	josh.printHand()
-	print("\nnuas hand is now:")
-	nua.printHand()
-	print("\ndiscard is now:")
-	printHand(discard)
-	print("\nlen(deck) =", len(deck))
-	
-	take((josh, nua), deck, 6)
-	#playARound(nua, josh, kozer, discard)
-
-	print("\n\n------ After TAKE --------\n")
-	print("joshs hand is now:")
-	josh.printHand()
-	print("\nnuas hand is now:")
-	nua.printHand()
-	print("\nlen(deck) is now:")
-	print(len(deck))
-	
-
-# players must be in proper order of taking
 def take(players, deck, sizeFullHand):
 	for player in players:
 		while( len(player.hand) < 6):
@@ -138,6 +150,14 @@ class Player:
 		self.removeCards(attack_cards)
 		return attack_cards
 
+	def prettyHand(self):
+		strCat = ""
+		for card in self.hand:
+			symbol = prettyPrintHand(card.suit)
+			strCat += (symbol + str(card) + symbol)
+			strCat += "\n"
+		return strCat
+
 	def defend(self, hand):
 		# remind player of their hand
 		self.hand = durakSort(self.hand)
@@ -194,6 +214,7 @@ def printHand(hand, arg1='', arg2='', arg3=''):
 		
 def selectCards(name, stack, msg_append = ""):
 	returnList = [] 
+
 	# if one item in list return item
 	if (len(stack) == 1):
 		return stack[0]
