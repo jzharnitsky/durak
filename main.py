@@ -153,7 +153,7 @@ class Player:
 	def prettyHand(self):
 		strCat = ""
 		for card in self.hand:
-			symbol = prettyPrintHand(card.suit)
+			symbol = prettyPrintSuit(card.suit)
 			strCat += (symbol + str(card) + symbol)
 			strCat += "\n"
 		return strCat
