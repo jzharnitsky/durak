@@ -10,11 +10,11 @@ def main():
 	winner = playAGame(josh, nua, kozer, deck)
 	print("Game Over! Winner was", winner.name)
 
-	
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
-		playARound(attacker, defender, kozer, discard)
+		took = '' # reinitialize after every round, took is only ever '' or 'took'
+		took = playARound(attacker, defender, kozer, discard)
 
 		# take, changes everyones hands and deck accordingly
 		take((attacker, defender), deck, 6)
@@ -32,11 +32,14 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		print(defender.name, "hand is now:\n",defender.prettyHand())
 		print("\nlen(deck) is now:", len(deck))
 
-
 		# switch places
-		temp = attacker
-		attacker = defender
-		defender = temp
+		if not (defender.took()):
+			temp = attacker
+			attacker = defender
+			defender = temp
+		else:
+			print("~~~~~~ Defender took, so attacker attacks again ~~~~~~")
+			defender.took(False)
 
 def initGame():
 	# initialize stuff
@@ -62,8 +65,6 @@ def take(players, deck, sizeFullHand):
 	for player in players:
 		while( len(player.hand) < 6):
 			player.take(deck.deal(1))
-		
-	
 
 def playARound(attacker, defender, kozer_suit, discard):
 	print("welcome! kozer = ", kozer_suit)
@@ -89,7 +90,8 @@ def playARound(attacker, defender, kozer_suit, discard):
 			defender.take(_buffer)
 			defender.take(_cardsToDefend)
 			_cardsToDefend = []
-			return
+			defender.justTook(True)
+			return 
 			
 		#print("right before armageddon, type(card_to_def) =", type(card_to_def))
 		#print("right before armageddon, card_to_def =", card_to_def)
@@ -137,7 +139,6 @@ def playARound(attacker, defender, kozer_suit, discard):
 	# _cardsToBeat is empty
 	for card in _buffer:
 		discard.append(card)
-	
 
 class Player:
 	def __init__(self, name, hand):
@@ -201,6 +202,10 @@ class Player:
 			symbol = prettyPrintSuit(card.suit)
 			print(symbol,card, symbol)
 
+	def justTook(self):
+		return took
+
+	def set_justTook(self, 
 
 def prettyPrintSuit(suit):
 	l = {'Spades':   '♠','Diamonds': '♦','Hearts':   '♥','Clubs':    '♣', }
