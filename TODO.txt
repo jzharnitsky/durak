@@ -1,0 +1,8 @@
+    ***------ List of tasks for Josh -----***
+
+- during 'wanna add more cards' 
+    - show attacker.deck() (helps decide if wanna add cards)
+    - show which cards are legal for attack
+
+- after round:
+    - after-round "ATTACKER hand is now:" is incorrectly sorted
