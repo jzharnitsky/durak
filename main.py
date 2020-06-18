@@ -14,7 +14,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
 		took = '' # reinitialize after every round, took is only ever '' or 'took'
-		took = playARound(attacker, defender, kozer, discard)
+		playARound(attacker, defender, kozer, discard)
 
 		# take, changes everyones hands and deck accordingly
 		take((attacker, defender), deck, 6)
@@ -33,13 +33,13 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		print("\nlen(deck) is now:", len(deck))
 
 		# switch places
-		if not (defender.took()):
+		if not (defender.justTook()):
 			temp = attacker
 			attacker = defender
 			defender = temp
 		else:
 			print("~~~~~~ Defender took, so attacker attacks again ~~~~~~")
-			defender.took(False)
+			defender.set_justTook(False)
 
 def initGame():
 	# initialize stuff
@@ -90,7 +90,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 			defender.take(_buffer)
 			defender.take(_cardsToDefend)
 			_cardsToDefend = []
-			defender.justTook(True)
+			defender.set_justTook(True)
 			return 
 			
 		#print("right before armageddon, type(card_to_def) =", type(card_to_def))
@@ -141,9 +141,10 @@ def playARound(attacker, defender, kozer_suit, discard):
 		discard.append(card)
 
 class Player:
-	def __init__(self, name, hand):
+	def __init__(self, name, hand, took=False):
 		self.name = name
 		self.hand = hand
+		self.took = took
 
 	def attack(self):
 		# attack with any card
@@ -203,9 +204,10 @@ class Player:
 			print(symbol,card, symbol)
 
 	def justTook(self):
-		return took
+		return self.took 
 
-	def set_justTook(self, 
+	def set_justTook(self, took_):
+		self.took = took_
 
 def prettyPrintSuit(suit):
 	l = {'Spades':   '♠','Diamonds': '♦','Hearts':   '♥','Clubs':    '♣', }
