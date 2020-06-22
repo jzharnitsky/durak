@@ -13,17 +13,17 @@ def main():
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
-		took = '' # reinitialize after every round, took is only ever '' or 'took'
+		# took = '' # reinitialize after every round, took is only ever '' or 'took'
 		playARound(attacker, defender, kozer, discard)
 
 		# take, changes everyones hands and deck accordingly
 		take((attacker, defender), deck, 6)
 		
-		# See if someone won
-		if ((len(deck) == 0) and (len(attacker.hand)==0)):
+		# See if someone won, and return winner
+		if ((len(deck) == 0) and (len(attacker.hand)== 0)):
 			return attacker
 
-		if ((len(deck) == 0) and (len(defender.hand)==0)):
+		if ((len(deck) == 0) and (len(defender.hand)== 0)):
 			return defender
 
 		# some messages
