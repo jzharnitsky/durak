@@ -3,6 +3,10 @@
 - during 'wanna add more cards' 
     - show attacker.deck() (helps decide if wanna add cards)
     - show which cards are legal for attack
+	- check which cards are legal for attack
 
 - after round:
     - after-round "ATTACKER hand is now:" is incorrectly sorted
+- after defense:
+	- after defending against 2 cards only 1 was drawn for the new hand
+

@@ -29,7 +29,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		# some messages
 		print("\n\n------ After Round --------\n")
 		print(attacker.name,"hand is now:\n", attacker.prettyHand())
-		print(defender.name, "hand is now:\n",defender.prettyHand())
+		print(defender.name, "hand is now:\n",defender.hand)
 		print("\nlen(deck) is now:", len(deck))
 
 		# switch places
@@ -64,7 +64,11 @@ def initGame():
 def take(players, deck, sizeFullHand):
 	for player in players:
 		while( len(player.hand) < 6):
-			player.take(deck.deal(1))
+			if (len(deck) > 0):
+				player.take(deck.deal(1))
+			else:
+				print("DECK IS NOW EMPTY")
+				return
 
 def playARound(attacker, defender, kozer_suit, discard):
 	print("welcome! kozer = ", kozer_suit)
@@ -80,7 +84,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 
 	# defender defends until no more cards to defend
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
-	while(len(_cardsToDefend) > 0):
+	while(type(_cardsToDefend) == list): # TODO
 		# defender selects card_to_defend and card_to_defend_with (or take)
 		print("at line 51, defender boutta select cards for defending purposes")
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
@@ -195,8 +199,13 @@ class Player:
 
 	def removeCards(self, cards):
 		self.hand = list(self.hand)
-		for card in cards:
-			self.hand.remove(card)
+
+		# if cards is a single card
+		if (type(cards) == pd.card.Card):
+			self.hand.remove(cards)
+		else:
+			for card in cards:
+				self.hand.remove(card)
 
 	def printHand(self):
 		for card in durakSort(self.hand):
