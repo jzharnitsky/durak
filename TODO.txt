@@ -11,3 +11,18 @@
 	- after defending against 2 cards only 1 was drawn for the new hand
 - after game:
 	- winner is declared while still having 1 card left
+
+0 : ♠ 6 of Spades ♠
+1 : ♥ 7 of Hearts ♥
+2 : ♥ Jack of Hearts ♥
+3 : ♠ King of Spades ♠
+4 : ♦ 8 of Diamonds ♦
+5 : ♦ 10 of Diamonds ♦
+
+ _______
+|5		|
+|		|
+|	♥	|
+|		|
+|	   5|
+   (1)

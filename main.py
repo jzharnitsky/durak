@@ -7,7 +7,7 @@ kozer = 'Diamonds'
 def main():
 	# params will be a struct later
 	josh, manny, nua, adam, kozer, deck, discard = initGame()
-	winner = playAGame(josh, nua, kozer, deck)
+	winner = playAGame(josh, manny, kozer, deck)
 	print("Game Over! Winner was", winner.name)
 
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
@@ -29,7 +29,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		# some messages
 		print("\n\n------ After Round --------\n")
 		print(attacker.name,"hand is now:\n", attacker.prettyHand())
-		print(defender.name, "hand is now:\n",defender.hand)
+		print(defender.name, "hand is now:\n",defender.prettyHand())
 		print("\nlen(deck) is now:", len(deck))
 
 		# switch places
@@ -84,7 +84,8 @@ def playARound(attacker, defender, kozer_suit, discard):
 
 	# defender defends until no more cards to defend
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
-	while(type(_cardsToDefend) == list): # TODO
+	defend = True 
+	while(defend): # TODO
 		# defender selects card_to_defend and card_to_defend_with (or take)
 		print("at line 51, defender boutta select cards for defending purposes")
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
@@ -104,6 +105,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 		if type(card_to_def) == list:
 			card_to_def = card_to_def[0]
 		card_to_def_with = card_to_def_with[0]
+
 
 		# Check if cards actually beats
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
@@ -139,6 +141,12 @@ def playARound(attacker, defender, kozer_suit, discard):
 		else:
 			print("\n|!|!|!|!|!|!|THAT DOESNT WORK FOOL||||||||||||\n")
 			print("you cant beat the", card_to_def, "with the", card_to_def_with)
+
+		# check if should be defending again        
+		if (type(_cardsToDefend != list)):
+			defend = False
+		else:
+			defend = (len(_cardsToDefend) > 0)
 		
 	# _cardsToBeat is empty
 	for card in _buffer:
@@ -157,11 +165,21 @@ class Player:
 		return attack_cards
 
 	def prettyHand(self):
-		strCat = ""
+		r0 = r1 = r2 = r3 = r4 = r5 = ""
 		for card in self.hand:
 			symbol = prettyPrintSuit(card.suit)
-			strCat += (symbol + str(card) + symbol)
-			strCat += "\n"
+			if card.value == 10:
+				value = "10"
+			else:
+				value = str(card.value)[0]
+			#r0 += " _______   "
+			r1 += "|" + value + "      |  "
+			r2 += "|       |  "
+			r3 += "|   " + symbol + "   |  "
+			r4 += "|       |  "
+			r5 += "|      " + value + "|  "
+			n = "\n"
+			strCat = r0+n+r1+n+r2+n+r3+n+r4+n+r5
 		return strCat
 
 	def defend(self, hand):
