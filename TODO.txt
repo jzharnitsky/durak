@@ -5,6 +5,8 @@
     - show which cards are legal for attack
 	- check which cards are legal for attack
 
+- after josh defended 1 card and manny added 1 card, the card manny added wasnt registered and it said Joshs turn to attack
+
 - after round:
     - after-round "ATTACKER hand is now:" is incorrectly sorted
 - after defense:
@@ -12,17 +14,4 @@
 - after game:
 	- winner is declared while still having 1 card left
 
-0 : ♠ 6 of Spades ♠
-1 : ♥ 7 of Hearts ♥
-2 : ♥ Jack of Hearts ♥
-3 : ♠ King of Spades ♠
-4 : ♦ 8 of Diamonds ♦
-5 : ♦ 10 of Diamonds ♦
 
- _______
-|5		|
-|		|
-|	♥	|
-|		|
-|	   5|
-   (1)
