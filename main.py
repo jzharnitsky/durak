@@ -7,7 +7,7 @@ kozer = 'Diamonds'
 def main():
 	# params will be a struct later
 	josh, manny, nua, adam, kozer, deck, discard = initGame()
-	winner = playAGame(josh, manny, kozer, deck)
+	winner = playAGame(josh, nua, kozer, deck)
 	print("Game Over! Winner was", winner.name)
 
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
@@ -20,7 +20,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		take((attacker, defender), deck, 6)
 		
 		# See if someone won, and return winner
-		if ((len(deck) == 0) and (len(attacker.hand)== 0)):
+		if ((len(deck) == 0) and (len(attacker.hand)<= 1)):
 			return attacker
 
 		if ((len(deck) == 0) and (len(defender.hand)== 0)):
@@ -31,6 +31,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		print(attacker.name,"hand is now:\n", attacker.prettyHand())
 		print(defender.name, "hand is now:\n",defender.prettyHand())
 		print("\nlen(deck) is now:", len(deck))
+		print("discard = ", discard)
 
 		# switch places
 		if not (defender.justTook()):
@@ -98,9 +99,6 @@ def playARound(attacker, defender, kozer_suit, discard):
 			defender.set_justTook(True)
 			return 
 			
-		#print("right before armageddon, type(card_to_def) =", type(card_to_def))
-		#print("right before armageddon, card_to_def =", card_to_def)
-		
 		# bug fixing
 		if type(card_to_def) == list:
 			card_to_def = card_to_def[0]
@@ -109,6 +107,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 
 		# Check if cards actually beats
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
+
 			# remove card_to_def from _cardsToDefend and add to buffer
 			_cardsToDefend.remove(card_to_def)
 			_buffer.append(card_to_def)
@@ -116,37 +115,34 @@ def playARound(attacker, defender, kozer_suit, discard):
 
 			# print success message
 			print("/////////// ", end='')
-			print(defender.name, "succesfully defends the ", card_to_def, "with the", end='')
-			print(card_to_def_with," \\\\\\\\\\\\\\\\\\\\\\")
+			print(defender.name, "succesfully defends the [" + str(card_to_def) + "] with the ", end='')
+			print("[" + str(card_to_def_with) + "]"," \\\\\\\\\\\\\\\\\\\\\\")
 
 			# remove card - this can be a function later hand.remove(card)
 			defender.hand = list(defender.hand)
 			defender.hand.remove(card_to_def_with)
 
 			# attacker optionally add cards
-			addCards = input(attacker.name + " enter 'y' or 'yes' to add more cards:")
-			if ((addCards.lower() == "y") or (addCards.lower() == "yes")):
-				cardsToAdd = attacker.addCards()
-				# TODO: Insert varification of cardsToAdd here
+			print("_buffer = ", _buffer)
+			cardsToAdd = attacker.addCards()
+			print("JUST ADDED CARDS")
 
-				# add cards to defeders queue of _cardsToDefend
-				if (len(cardsToAdd) > 0):
-					print("Dope, adding:")
-					for card in cardsToAdd:
-						print(card)
+			# add cards to defeders queue of _cardsToDefend
+			if (len(cardsToAdd) > 0):
+				listOfLegalValues = makeListValues(_buffer)
+				for card in cardsToAdd:
+					if card.value in listOfLegalValues:
+						print("Dope, adding:", card)
 						_cardsToDefend.append(card)
-			else:
-				print(attacker.name, "dont wanna add more cards thats cool")
+					else:
+						print("Whoopsie,", card, "is ILLEGAL")
 					
 		else:
 			print("\n|!|!|!|!|!|!|THAT DOESNT WORK FOOL||||||||||||\n")
 			print("you cant beat the", card_to_def, "with the", card_to_def_with)
 
-		# check if should be defending again        
-		if (type(_cardsToDefend != list)):
-			defend = False
-		else:
-			defend = (len(_cardsToDefend) > 0)
+		print("else: len()=", len(_cardsToDefend))
+		defend = (len(_cardsToDefend) > 0)
 		
 	# _cardsToBeat is empty
 	for card in _buffer:
@@ -166,18 +162,20 @@ class Player:
 
 	def prettyHand(self):
 		r0 = r1 = r2 = r3 = r4 = r5 = ""
+		self.hand = durakSort(self.hand)
 		for card in self.hand:
 			symbol = prettyPrintSuit(card.suit)
-			if card.value == 10:
-				value = "10"
+			if card.value == "10":
+				valueTop = valueBottom = "10"
 			else:
-				value = str(card.value)[0]
+				valueTop = card.value[0] + " "
+				valueBottom = " " + card.value[0]
 			#r0 += " _______   "
-			r1 += "|" + value + "      |  "
-			r2 += "|       |  "
-			r3 += "|   " + symbol + "   |  "
-			r4 += "|       |  "
-			r5 += "|      " + value + "|  "
+			r1 += "|" + valueTop + "     | "
+			r2 += "|       | "
+			r3 += "|   " + symbol + "   | "
+			r4 += "|       | "
+			r5 += "|     " + valueBottom + "| "
 			n = "\n"
 			strCat = r0+n+r1+n+r2+n+r3+n+r4+n+r5
 		return strCat
@@ -209,8 +207,9 @@ class Player:
 	def take(self, junk):
 		for item in list(junk):
 			self.hand.append(item)
+
 	def addCards(self):
-		# attack with any card
+		# add cards (currently face-up)
 		attack_cards = selectCards(self.name, self.hand, "to add on")
 		self.removeCards(attack_cards)
 		return attack_cards
@@ -250,8 +249,10 @@ def selectCards(name, stack, msg_append = ""):
 	returnList = [] 
 
 	# if one item in list return item
+	if (type(stack) == pd.card.Card):
+		return [stack]
 	if (len(stack) == 1):
-		return stack[0]
+		return stack
 
 	# print stuff
 	message = "Select a card " + msg_append
@@ -279,6 +280,15 @@ def checkBeats(atkCard, defCard, kozer):
 		return atkCard.lt(defCard)
 	else:
 		return (defCard.suit == kozer) and (defCard.gt(atkCard) or atkCard.suit != kozer)
+
+def makeListValues(listOfCards):
+	listOfValues = []
+	for card in listOfCards:
+		listOfValues.append(card.value)
+	return listOfValues
+
+	
+	
 
 def durakSort(arr):
 	# sort kozers and nonKozers seperately
