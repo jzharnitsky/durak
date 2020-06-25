@@ -5,22 +5,23 @@ from pydealer import Card
 kozer = 'Diamonds'
 
 def main():
-	# params will be a struct later
+	# create players, deck, discard
 	josh, manny, nua, adam, kozer, deck, discard = initGame()
+
+	# play a game, returns 'winner'
 	winner = playAGame(josh, nua, kozer, deck)
 	print("Game Over! Winner was", winner.name)
 
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
-		# took = '' # reinitialize after every round, took is only ever '' or 'took'
 		playARound(attacker, defender, kozer, discard)
 
 		# take, changes everyones hands and deck accordingly
 		take((attacker, defender), deck, 6)
 		
 		# See if someone won, and return winner
-		if ((len(deck) == 0) and (len(attacker.hand)<= 1)):
+		if ((len(deck) == 0) and (len(attacker.hand) <= 1)):
 			return attacker
 
 		if ((len(deck) == 0) and (len(defender.hand)== 0)):
@@ -28,8 +29,8 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 
 		# some messages
 		print("\n\n------ After Round --------\n")
-		print(attacker.name,"hand is now:\n", attacker.prettyHand())
-		print(defender.name, "hand is now:\n",defender.prettyHand())
+		print(attacker.name,"hand is now:", attacker.prettyHand())
+		print(defender.name, "hand is now:",defender.prettyHand())
 		print("\nlen(deck) is now:", len(deck))
 		print("discard = ", discard)
 
@@ -64,7 +65,7 @@ def initGame():
 
 def take(players, deck, sizeFullHand):
 	for player in players:
-		while( len(player.hand) < 6):
+		while( len(player.hand) < sizeFullHand):
 			if (len(deck) > 0):
 				player.take(deck.deal(1))
 			else:
@@ -75,23 +76,20 @@ def playARound(attacker, defender, kozer_suit, discard):
 	print("welcome! kozer = ", kozer_suit)
 
 	# internal variables
-	_cardsToDefend = []
-	_buffer = []
+	_buffer = [] # stores the rest of the cards played
 
 	# attacker's initial attack
-	print(attacker.name, "- select card to attack with:")
 	print("\n//////////", attacker.name, "////////// ATTACK //////////", defender.name, "//////////")
+	print(attacker.name, "- select card to attack with:")
 	_cardsToDefend = attacker.attack()
 
 	# defender defends until no more cards to defend
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
-	defend = True 
-	while(defend): # TODO
-		# defender selects card_to_defend and card_to_defend_with (or take)
-		print("at line 51, defender boutta select cards for defending purposes")
+	while(len(_cardsToDefend) > 0):
+		# defender selects 'take', or card_to_defend and card_to_defend_with 
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
 
-		# if defender took
+		# check if defender took
 		if (card_to_def == 'take'):
 			defender.take(_buffer)
 			defender.take(_cardsToDefend)
@@ -104,47 +102,31 @@ def playARound(attacker, defender, kozer_suit, discard):
 			card_to_def = card_to_def[0]
 		card_to_def_with = card_to_def_with[0]
 
-
 		# Check if cards actually beats
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
 
-			# remove card_to_def from _cardsToDefend and add to buffer
+			# remove cards from hand and _cardsToDefend and add to buffer
+			list(defender.hand).remove(card_to_def_with)
 			_cardsToDefend.remove(card_to_def)
 			_buffer.append(card_to_def)
 			_buffer.append(card_to_def_with)
 
 			# print success message
-			print("/////////// ", end='')
+			print("/////////////// ", end='')
 			print(defender.name, "succesfully defends the [" + str(card_to_def) + "] with the ", end='')
-			print("[" + str(card_to_def_with) + "]"," \\\\\\\\\\\\\\\\\\\\\\")
-
-			# remove card - this can be a function later hand.remove(card)
-			defender.hand = list(defender.hand)
-			defender.hand.remove(card_to_def_with)
+			print("[" + str(card_to_def_with) + "]"," \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\")
 
 			# attacker optionally add cards
-			print("_buffer = ", _buffer)
-			cardsToAdd = attacker.addCards()
-			print("JUST ADDED CARDS")
-
-			# add cards to defeders queue of _cardsToDefend
-			if (len(cardsToAdd) > 0):
-				listOfLegalValues = makeListValues(_buffer)
-				for card in cardsToAdd:
-					if card.value in listOfLegalValues:
-						print("Dope, adding:", card)
-						_cardsToDefend.append(card)
-					else:
-						print("Whoopsie,", card, "is ILLEGAL")
+			print("DEFENDER (" + defender.name.upper() + ") CARD COUNT:", defender.lengthHand())
+			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend)
+			for card in cardsToAdd:
+				_cardsToDefend.append(card)
 					
-		else:
+		else: # else for 'if (checkBeats):'
 			print("\n|!|!|!|!|!|!|THAT DOESNT WORK FOOL||||||||||||\n")
 			print("you cant beat the", card_to_def, "with the", card_to_def_with)
 
-		print("else: len()=", len(_cardsToDefend))
-		defend = (len(_cardsToDefend) > 0)
-		
-	# _cardsToBeat is empty
+	# _cardsToDefend is empty; discard cards
 	for card in _buffer:
 		discard.append(card)
 
@@ -152,7 +134,7 @@ class Player:
 	def __init__(self, name, hand, took=False):
 		self.name = name
 		self.hand = hand
-		self.took = took
+		self.took = took # flag for if player just took
 
 	def attack(self):
 		# attack with any card
@@ -194,11 +176,11 @@ class Player:
 			return ('take', 'take')
 		
 		#select card to defend with
-		strCat = "to defend the [" + str(card_to_defend) + "] with (OR 'take' TO TAKE)"
+		strCat = "to defend the [" + str(card_to_defend[0]) + "] with (OR 'take' TO TAKE)"
 		card_to_defend_with = selectCards(self.name,self.hand, strCat)
 		
-		# check if user took
-		if ((card_to_defend == 'take') or (card_to_defend_with == 'take')):
+		# check if user took (again)
+		if (card_to_defend_with == 'take'):
 			return ('take', 'take')
 
 		# return if user defended successfully
@@ -208,11 +190,22 @@ class Player:
 		for item in list(junk):
 			self.hand.append(item)
 
-	def addCards(self):
-		# add cards (currently face-up)
-		attack_cards = selectCards(self.name, self.hand, "to add on")
-		self.removeCards(attack_cards)
-		return attack_cards
+	def addCards(self, cards_played):
+		legal_attack_cards = []
+		while(True):
+			ac = selectCards(self.name, self.hand, "to add on (or 'done')")
+			if (type(ac) != list and ((ac.lower() == 'done') or (ac == ''))):
+				return []
+			if (len(ac) > 0):
+				listOfLegalValues = [x.value for x in cards_played]
+				for card in ac:
+					if card.value in listOfLegalValues:
+						legal_attack_cards.append(card)
+					else:
+						print(" |!|!|!|!|!|!| FOOL you can't add [",card,"] |!|!|!|!|!|!|")
+				if (len(legal_attack_cards) > 0):	
+						self.removeCards(legal_attack_cards)
+						return legal_attack_cards
 
 	def removeCards(self, cards):
 		self.hand = list(self.hand)
@@ -228,6 +221,9 @@ class Player:
 		for card in durakSort(self.hand):
 			symbol = prettyPrintSuit(card.suit)
 			print(symbol,card, symbol)
+
+	def lengthHand(self):
+		return len(self.hand)
 
 	def justTook(self):
 		return self.took 
@@ -266,7 +262,7 @@ def selectCards(name, stack, msg_append = ""):
 	user_input = input("Enter Selection (number, space seperated for multiple) here: ")
 
 	# return user selection
-	print("Excelent Choice! You selected:")
+	print("Excelent Choice! You selected:", end=' ')
 	if (user_input.lower() == 'take'):
 		print("TO TAKE U LOZER")
 		return "take"
@@ -280,15 +276,6 @@ def checkBeats(atkCard, defCard, kozer):
 		return atkCard.lt(defCard)
 	else:
 		return (defCard.suit == kozer) and (defCard.gt(atkCard) or atkCard.suit != kozer)
-
-def makeListValues(listOfCards):
-	listOfValues = []
-	for card in listOfCards:
-		listOfValues.append(card.value)
-	return listOfValues
-
-	
-	
 
 def durakSort(arr):
 	# sort kozers and nonKozers seperately

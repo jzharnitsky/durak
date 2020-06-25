@@ -11,9 +11,9 @@
 
 	***------ List of tasks for Josh -----***
 
-- during 'wanna add more cards' #TODO
-	- if adding 'illegal' card let attacker try again
-
+- during add-more-cards
+	- Display legal cards to be added
+	- Display how many cards can be added
 - after round:
     - after-round "ATTACKER hand is now:" is incorrectly sorted
 - after defense:
