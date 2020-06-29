@@ -12,13 +12,9 @@
 	***------ List of tasks for Josh -----***
 
 - during add-more-cards
-	- Display legal cards to be added
-	- Display how many cards can be added
-- after round:
-    - after-round "ATTACKER hand is now:" is incorrectly sorted
-- after defense:
-	- after defending against 2 cards only 1 was drawn for the new hand
-- after game:
-	- winner is declared while still having 1 card left
-
+	- Test if 'add carded was legal verification' is working
+		- Display legal cards to be added
+		- Display how many cards can be added
+- create logs
+- list legal moves
 

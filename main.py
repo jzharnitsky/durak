@@ -76,7 +76,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 	print("welcome! kozer = ", kozer_suit)
 
 	# internal variables
-	_buffer = [] # stores the rest of the cards played
+	_buffer = [] # cards to be taken or discarded, depending on defender
 
 	# attacker's initial attack
 	print("\n//////////", attacker.name, "////////// ATTACK //////////", defender.name, "//////////")
@@ -195,7 +195,7 @@ class Player:
 		while(True):
 			ac = selectCards(self.name, self.hand, "to add on (or 'done')")
 			if (type(ac) != list and ((ac.lower() == 'done') or (ac == ''))):
-				return []
+				return None
 			if (len(ac) > 0):
 				listOfLegalValues = [x.value for x in cards_played]
 				for card in ac:
@@ -250,25 +250,35 @@ def selectCards(name, stack, msg_append = ""):
 	if (len(stack) == 1):
 		return stack
 
+	# JOSH Josh TODO
+	# Create list_valid_entries
+	list_valid_strings = ['done', 'take']	
+	list_valid_entries = list_valid_strings + list(range(0,len(stack)))
+	stack = durakSort(stack)
+
 	# print stuff
 	message = "Select a card " + msg_append
 	print(message, name)
-	stack = durakSort(stack)
 	for i in range(len(stack)):
 		symbol = prettyPrintSuit(stack[i].suit)
 		print(i, ":", symbol,stack[i],symbol)
 
 	# collect user input
 	user_input = input("Enter Selection (number, space seperated for multiple) here: ")
+		
 
 	# return user selection
 	print("Excelent Choice! You selected:", end=' ')
-	if (user_input.lower() == 'take'):
-		print("TO TAKE U LOZER")
-		return "take"
+	if (user_input.lower() in list_valid_strings):
+		print("To enter a VALID SPECIAL STRING")
+		return user_input.lower()
 	for selection in user_input.split():
-		returnList.append(stack[int(selection)])
-		print(stack[int(selection)])
+		# check if user input in list_valid_entries
+		if (user_input.lower() in list_valid_entries):
+			returnList.append(stack[int(selection)])
+			print(stack[int(selection)])
+	if (len(returnList) == 0):
+		return None
 	return returnList
 
 def checkBeats(atkCard, defCard, kozer):
@@ -278,6 +288,7 @@ def checkBeats(atkCard, defCard, kozer):
 		return (defCard.suit == kozer) and (defCard.gt(atkCard) or atkCard.suit != kozer)
 
 def durakSort(arr):
+	# uses quicksort
 	# sort kozers and nonKozers seperately
 	kozers = []
 	nonKozers = []
