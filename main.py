@@ -1,7 +1,12 @@
 import pydealer as pd
+import logging
 import inspect
 from pydealer import Card
-kozer = 'Diamonds' #Hardcoded
+kozer = 'Diamonds'
+
+# create and configure logger
+logging.basicConfig(filename = "./logs/testLog",level = logging.DEBUG, filemode = 'w')
+logger = logging.getLogger()
 
 def main():
 	# create players, deck, discard
@@ -13,6 +18,7 @@ def main():
 
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	print("welcome! kozer = ", kozer)
+	logger.info("Top of playAGame, kozer=" + kozer)
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
 		playARound(attacker, defender, kozer, discard)
@@ -49,7 +55,7 @@ def initGame():
 	discard = list()
 	hands = list()
 	deck.shuffle()
-	kozer = 'Diamonds'
+	#kozer = 'Diamonds' #declared globally 
 
 	# deal 4 hands
 	for i in range(4):
