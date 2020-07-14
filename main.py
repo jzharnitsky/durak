@@ -137,13 +137,19 @@ class Player:
 	def attack(self):
 		# attack with any card
 		attack_cards = selectCards(self.name, self.hand, "to attack with")
-		print("josh inside attack, attack_cards=", attack_cards)
 		self.removeCards(attack_cards)
 		return attack_cards
 
 	def prettyHand(self):
-		r0 = r1 = r2 = r3 = r4 = r5 = ""
+		r0 = r1 = r2 = r3 = r4 = r5 = strCat = ""
 		self.hand = durakSort(self.hand)
+
+		# if hand is too long dont prettyPrint
+		if (len(self.hand) > 12):
+			for card in self.hand:
+				strCat += card.value + prettyPrintSuit(card.suit) + " "
+			return strCat
+
 		for card in self.hand:
 			symbol = prettyPrintSuit(card.suit)
 			if card.value == "10":
@@ -208,7 +214,6 @@ class Player:
 
 	def removeCards(self, cards):
 		self.hand = list(self.hand)
-		print("Inside removeCards, cards=",cards)
 
 		# if cards is a single card
 		if (type(cards) == pd.card.Card):
@@ -242,42 +247,45 @@ def printHand(hand, arg1='', arg2='', arg3=''):
 	print(arg1, arg2, arg3)
 		
 def selectCards(name, stack, msg_append = ""):
-	returnList = [] 
+	while True:
+		returnList = [] 
 
-	# if one item in list return item
-	if (type(stack) == pd.card.Card):
-		return [stack]
-	if (len(stack) == 1):
-		return stack
+		# if one item in list return item
+		if (type(stack) == pd.card.Card):
+			return [stack]
+		if (len(stack) == 1):
+			return stack
 
-	# JOSH Josh TODO
-	# Create list_valid_entries
-	list_valid_strings = ['done', 'take']	
-	list_valid_entries = list_valid_strings + [str(x) for x in range(0, len(stack))]
-	stack = durakSort(stack)
+		# Create list_valid_entries
+		list_valid_strings = ['done', 'take']	
+		list_valid_entries = list_valid_strings + [str(x) for x in range(0, len(stack))]
+		stack = durakSort(stack)
 
-	# print stuff
-	message = "Select a card " + msg_append
-	print(message, name)
-	for i in range(len(stack)):
-		symbol = prettyPrintSuit(stack[i].suit)
-		print(i, ":", symbol,stack[i],symbol)
+		# print stuff
+		message = "Select a card " + msg_append
+		print(message, name)
+		for i in range(len(stack)):
+			symbol = prettyPrintSuit(stack[i].suit)
+			print(i, ":", symbol,stack[i],symbol)
 
-	# collect user input
-	user_input = input("Enter Selection (number, space seperated for multiple) here: ")
+		# collect user input
+		user_input = input("Enter Selection (number, space seperated for multiple) here: ")
+			
+		# return user selection
+		for selection in user_input.split():
+			if (user_input.lower() in list_valid_strings):
+				return user_input.lower()
+			if (selection in list_valid_entries):
+				returnList.append(stack[int(selection)])
+				print("Excellent choice, you selected:", stack[int(selection)])
+			else:
+				print("ok now try again and enter something valid this time *cough* NUA *cough*")
+				continue
 
-		
-	# return user selection
-	print("Excelent Choice! You selected:", end=' ')
-	for selection in user_input.split():
-		if (user_input.lower() in list_valid_strings):
-			return user_input.lower()
-		if (selection in list_valid_entries):
-			returnList.append(stack[int(selection)])
-			print(stack[int(selection)])
-	if (len(returnList) == 0):
-		return None
-	return returnList
+		if (len(returnList) == 0):
+			print("Bruh none of what you just wrote was valid")
+			continue
+		return returnList
 
 def checkBeats(atkCard, defCard, kozer):
 	if (atkCard.suit == defCard.suit):
