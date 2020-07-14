@@ -1,8 +1,7 @@
 import pydealer as pd
 import inspect
 from pydealer import Card
-# TODO: implement 'adding' cards
-kozer = 'Diamonds'
+kozer = 'Diamonds' #Hardcoded
 
 def main():
 	# create players, deck, discard
@@ -13,6 +12,7 @@ def main():
 	print("Game Over! Winner was", winner.name)
 
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
+	print("welcome! kozer = ", kozer)
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
 		playARound(attacker, defender, kozer, discard)
@@ -24,7 +24,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		if ((len(deck) == 0) and (len(attacker.hand) <= 1)):
 			return attacker
 
-		if ((len(deck) == 0) and (len(defender.hand)== 0)):
+		if ((len(deck) == 0) and (len(defender.hand) == 0)):
 			return defender
 
 		# some messages
@@ -73,17 +73,15 @@ def take(players, deck, sizeFullHand):
 				return
 
 def playARound(attacker, defender, kozer_suit, discard):
-	print("welcome! kozer = ", kozer_suit)
-
 	# internal variables
 	_buffer = [] # cards to be taken or discarded, depending on defender
 
-	# attacker's initial attack
+	# attacker attacks with any card (or multiple of same value)
 	print("\n//////////", attacker.name, "////////// ATTACK //////////", defender.name, "//////////")
 	print(attacker.name, "- select card to attack with:")
 	_cardsToDefend = attacker.attack()
 
-	# defender defends until no more cards to defend
+	# defender defends until no more cards to defend TODO: (or 6 total)
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
 	while(len(_cardsToDefend) > 0):
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
@@ -93,7 +91,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 		if (card_to_def == 'take'):
 			defender.take(_buffer)
 			defender.take(_cardsToDefend)
-			_cardsToDefend = []
+			_cardsToDefend = [] #Is this line necessary?
 			defender.set_justTook(True)
 			return 
 			
@@ -139,6 +137,7 @@ class Player:
 	def attack(self):
 		# attack with any card
 		attack_cards = selectCards(self.name, self.hand, "to attack with")
+		print("josh inside attack, attack_cards=", attack_cards)
 		self.removeCards(attack_cards)
 		return attack_cards
 
@@ -209,6 +208,7 @@ class Player:
 
 	def removeCards(self, cards):
 		self.hand = list(self.hand)
+		print("Inside removeCards, cards=",cards)
 
 		# if cards is a single card
 		if (type(cards) == pd.card.Card):
@@ -253,7 +253,7 @@ def selectCards(name, stack, msg_append = ""):
 	# JOSH Josh TODO
 	# Create list_valid_entries
 	list_valid_strings = ['done', 'take']	
-	list_valid_entries = list_valid_strings + list(range(0,len(stack)))
+	list_valid_entries = list_valid_strings + [str(x) for x in range(0, len(stack))]
 	stack = durakSort(stack)
 
 	# print stuff
@@ -265,16 +265,14 @@ def selectCards(name, stack, msg_append = ""):
 
 	# collect user input
 	user_input = input("Enter Selection (number, space seperated for multiple) here: ")
-		
 
+		
 	# return user selection
 	print("Excelent Choice! You selected:", end=' ')
-	if (user_input.lower() in list_valid_strings):
-		print("To enter a VALID SPECIAL STRING")
-		return user_input.lower()
 	for selection in user_input.split():
-		# check if user input in list_valid_entries
-		if (user_input.lower() in list_valid_entries):
+		if (user_input.lower() in list_valid_strings):
+			return user_input.lower()
+		if (selection in list_valid_entries):
 			returnList.append(stack[int(selection)])
 			print(stack[int(selection)])
 	if (len(returnList) == 0):
@@ -287,8 +285,7 @@ def checkBeats(atkCard, defCard, kozer):
 	else:
 		return (defCard.suit == kozer) and (defCard.gt(atkCard) or atkCard.suit != kozer)
 
-def durakSort(arr):
-	# uses quicksort
+def durakSort(arr): # uses quicksort
 	# sort kozers and nonKozers seperately
 	kozers = []
 	nonKozers = []
@@ -310,14 +307,6 @@ def quickSort(arr):
 		return quickSort( [x for x in arr[1:] if x.lt(arr[0])] ) + \
 			[arr[0]] + \
 			quickSort([x for x in arr[1:] if x.gt(arr[0])])
-
-def retrieve_name(var):
-    callers_local_vars = inspect.currentframe().f_back.f_locals.items()
-    return [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
- 
-def mod_retrieve_name(var):
-    callers_local_vars = inspect.currentframe().f_back.f_back.f_locals.items()
-    return [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
 
 def createDurakDeck():
 	deck_ = pd.Deck()

@@ -12,9 +12,10 @@
 	***------ List of tasks for Josh -----***
 
 - during add-more-cards
-	- Test if 'add carded was legal verification' is working
 		- Display legal cards to be added
 		- Display how many cards can be added
 - create logs
 - list legal moves
 
+- Figure out how to consistently repeat 'selectCards screen' until valid input. IDEAS:
+	- inside selectCards, if invalid input GOTO top of selectCards
