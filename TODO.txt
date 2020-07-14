@@ -14,7 +14,17 @@
 - during add-more-cards
 		- Display legal cards to be added
 		- Display how many cards can be added
-- create logs
+- create logs 
+	- Socratica Logging
+	- THINGS TO LOG:
+		- when round begins
+		- when card is played
+		- when card is added
+		- when card is defended
+		- when round ends
+		- when cards are taken (from deck or table)
+	
+	
 - list legal moves
 
 - Figure out how to consistently repeat 'selectCards screen' until valid input. IDEAS:
