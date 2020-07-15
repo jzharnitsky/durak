@@ -10,6 +10,7 @@
 	3) Create learning AI that learns by playing itself
 
 	***------ List of tasks for Josh -----***
+- DEFENDER CARD COUNT: is 1 too high
 
 - during add-more-cards
 		- Display legal cards to be added

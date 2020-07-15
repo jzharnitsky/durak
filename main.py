@@ -90,6 +90,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 	# defender defends until no more cards to defend TODO: (or 6 total)
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
 	while(len(_cardsToDefend) > 0):
+		print("josh top of while(len(_cardsToDefend)>0, btw len=",len(_cardsToDefend))
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
 
@@ -110,7 +111,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
 
 			# remove cards from hand and _cardsToDefend and add to buffer
-			list(defender.hand).remove(card_to_def_with)
+			defender.removeCards(card_to_def_with)
 			_cardsToDefend.remove(card_to_def)
 			_buffer.append(card_to_def)
 			_buffer.append(card_to_def_with)
@@ -203,12 +204,13 @@ class Player:
 
 	def addCards(self, cards_played):
 		legal_attack_cards = []
+		listOfLegalValues = list(set(x.value for x in cards_played))
+		print("LEGAL CARDS FOR ADDING:", listOfLegalValues)
 		while(True):
 			ac = selectCards(self.name, self.hand, "to add on (or 'done')")
 			if (type(ac) != list and ((ac.lower() == 'done') or (ac == ''))):
 				return None
 			if (len(ac) > 0):
-				listOfLegalValues = [x.value for x in cards_played]
 				for card in ac:
 					if card.value in listOfLegalValues:
 						legal_attack_cards.append(card)
