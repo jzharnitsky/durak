@@ -90,7 +90,6 @@ def playARound(attacker, defender, kozer_suit, discard):
 	# defender defends until no more cards to defend TODO: (or 6 total)
 	print("\n//////////", defender.name, "////////// DEFEND //////////", attacker.name, "//////////")
 	while(len(_cardsToDefend) > 0):
-		print("josh top of while(len(_cardsToDefend)>0, btw len=",len(_cardsToDefend))
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
 
@@ -177,8 +176,7 @@ class Player:
 	def defend(self, hand):
 		# remind player of their hand
 		self.hand = durakSort(self.hand)
-		print("Time to Defend", self.name, "your hand is:\n")
-		printHand(self.hand, "\n")
+		print("Time to Defend", self.name, "your hand is:\n",self.prettyHand())
 
 		# select card to defend
 		card_to_defend = selectCards(self.name, hand, "to defend (OR 'take' TO TAKE)")
