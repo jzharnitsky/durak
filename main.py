@@ -41,8 +41,10 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		print(colored("\n\n------ After Round --------\n"))
 		print(attacker.name,"hand is now: " + attacker.prettyHand())
 		print(defender.name, "hand is now: " + defender.prettyHand())
-		print(colored("\nlen(deck) is now: " + len(deck)))
-		print(colored("discard = " + discard))
+		print(colored("\nlen(deck) is now: " + str(len(deck))))
+		print(colored("discard = " + str(discard))) #TODO: make method shortPrettyPrint() or something 
+													# use it to print discard, also in prettyPrintHand
+													# if (len(hand)) > 12 shortPrettyPrint() :)
 
 		# switch places
 		if not (defender.justTook()):
@@ -211,7 +213,7 @@ class Player:
 		while(True):
 			ac = selectCards(self.name, self.hand, "to add on (or 'done')")
 			if (type(ac) != list and ((ac.lower() == 'done') or (ac == ''))):
-				return None
+				return []
 			if (len(ac) > 0):
 				for card in ac:
 					if card.value in listOfLegalValues:
@@ -274,10 +276,12 @@ def selectCards(name, stack, msg_append = ""):
 
 		# collect user input
 		user_input = input("Enter Selection (number, space seperated for multiple) here: ")
+		print(colored("you entered " + user_input, 'yellow'))
 			
 		# return user selection
 		for selection in user_input.split():
 			if (user_input.lower() in list_valid_strings):
+				print(colored("that WAS in the list of valid strings", 'yellow'))
 				return user_input.lower()
 			if (selection in list_valid_entries):
 				returnList.append(stack[int(selection)])
