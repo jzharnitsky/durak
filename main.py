@@ -6,6 +6,7 @@ from termcolor import colored
 kozer = 'Diamonds'
 s = " ////////// "
 b  = " \\\\\\\\\\\\\\\\\\\\ "
+x =" |!|!|!|!|!|!| "  
 
 # create and configure logger
 logging.basicConfig(filename = "./logs/testLog",level = logging.DEBUG, filemode = 'w')
@@ -38,8 +39,8 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 
 		# some messages
 		print(colored("\n\n------ After Round --------\n"))
-		print(colored(attacker.name,"hand is now: " + attacker.prettyHand()))
-		print(colored(defender.name, "hand is now: " + defender.prettyHand()))
+		print(attacker.name,"hand is now: " + attacker.prettyHand())
+		print(defender.name, "hand is now: " + defender.prettyHand())
 		print(colored("\nlen(deck) is now: " + len(deck)))
 		print(colored("discard = " + discard))
 
@@ -91,7 +92,7 @@ def playARound(attacker, defender, kozer_suit, discard):
 	_cardsToDefend = attacker.attack()
 
 	# defender defends until no more cards to defend TODO: (or 6 total)
-	print(colored("\n" + s + defender.name + s + "DEFEND/////", attacker.name, "//////////"))
+	print(colored("\n" + s + defender.name + s + "DEFEND" + s + attacker.name + s, 'cyan'))
 	while(len(_cardsToDefend) > 0):
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
@@ -119,18 +120,18 @@ def playARound(attacker, defender, kozer_suit, discard):
 			_buffer.append(card_to_def_with)
 
 			# print success message
-			print(colored(s + defender.name + "succesfully defends the [" + str(card_to_def) \
-			 + "] with the [" + str(card_to_def_with) + "]" + b))
+			print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
+			 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
 
 			# attacker optionally add cards
-			print(colored("DEFENDER (" + defender.name.upper() + ") CARD COUNT:" + defender.lengthHand()))
+			print(colored("DEFENDER (" + defender.name.upper() + ") CARD COUNT:" + str(defender.lengthHand())))
 			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend)
 			for card in cardsToAdd:
 				_cardsToDefend.append(card)
 					
 		else: # else for 'if (checkBeats):'
-			print(colored("\n|!|!|!|!|!|!|THAT DOESNT WORK FOOL||||||||||||\n"))
-			print(colored("you cant beat the", card_to_def, "with the", card_to_def_with))
+			print(colored(x + "FOOL YOU CANT BEAT THE [" + str(card_to_def) + "] WITH THE " \
+				+ "[" + str(card_to_def_with) + "]" + x,'red'))
 
 	# _cardsToDefend is empty; discard cards
 	for card in _buffer:
@@ -188,7 +189,8 @@ class Player:
 			return ('take', 'take')
 		
 		#select card to defend with
-		strCat = "to defend the [" + str(card_to_defend[0]) + "] with (OR 'take' TO TAKE)"
+		sym = prettyPrintSuit(card_to_defend[0].suit)
+		strCat = "to defend the [" + sym + " " + str(card_to_defend[0]) + " " + sym + "] with (OR 'take' TO TAKE)"
 		card_to_defend_with = selectCards(self.name,self.hand, strCat)
 		
 		# check if user took (again)
@@ -215,7 +217,7 @@ class Player:
 					if card.value in listOfLegalValues:
 						legal_attack_cards.append(card)
 					else:
-						print(colored(" |!|!|!|!|!|!| FOOL you can't add [ " + card + " ] |!|!|!|!|!|!|"))
+						print(colored(x + "FOOL you can't add [" + str(card) + "]" + x, 'red'))
 				if (len(legal_attack_cards) > 0):	
 						self.removeCards(legal_attack_cards)
 						return legal_attack_cards
@@ -279,13 +281,13 @@ def selectCards(name, stack, msg_append = ""):
 				return user_input.lower()
 			if (selection in list_valid_entries):
 				returnList.append(stack[int(selection)])
-				print(colored("Excellent choice, you selected: " + stack[int(selection)]))
 			else:
-				print(colored("ok now try again and enter something valid this time *cough* NUA *cough*"))
+				print(colored("ok that was an invalid entry *cough* NUA *cough*", 'red'))
 				continue
 
+		# TODO: Figure out if this if statement is necessary
 		if (len(returnList) == 0):
-			print(colored("Bruh none of what you just wrote was valid"))
+			print(colored("Bruh none of what you just wrote was valid", 'red'))
 			continue
 		return returnList
 

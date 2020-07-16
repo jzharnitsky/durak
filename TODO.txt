@@ -10,6 +10,8 @@
 	3) Create learning AI that learns by playing itself
 
 	***------ List of tasks for Josh -----***
+- GLITCH
+	glitches out if type 'done' during addcards
 - during add-more-cards
 		- Display how many cards can be added
 
