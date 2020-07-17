@@ -1,17 +1,5 @@
-    *** ------ NUA NEEDS TO KNOW FOR AI ----- ***
-- Cards in Hand
-- Cards 'on table'
-- Cards in discard
-- Number cards remaining in deck
-
-3 Goals
-	1) Create 'random aka dumb' AI
-	2) Hardcode strategy AI (aka algorythm)
-	3) Create learning AI that learns by playing itself
-
 	***------ List of tasks for Josh -----***
-- GLITCH
-	glitches out if type 'done' during addcards
+- check if someone won before 'addCards' **********$*$*$*
 - during add-more-cards
 		- Display how many cards can be added
 
@@ -22,7 +10,7 @@
 	- when card is defended
 	- when round ends
 	- when cards are taken (from deck or table)
-
 	
 - list legal moves
+
 

@@ -1,5 +1,9 @@
-print(colored("josh was here")
-for i in range(10):
-	j = 3
-	print(colored("wassup world")
 
+def add1(number):
+	number += 1
+def main():
+	x = 5
+	print("x before:", x)
+	add1(x)
+	print("x after:", x)
+main()

@@ -28,7 +28,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		playARound(attacker, defender, kozer, discard)
 
 		# take, changes everyones hands and deck accordingly
-		take((attacker, defender), deck, 6)
+		take((attacker, defender), deck)
 		
 		# See if someone won, and return winner
 		if ((len(deck) == 0) and (len(attacker.hand) <= 1)):
@@ -75,7 +75,7 @@ def initGame():
 
 	return josh, manny, nua, adam, kozer, deck, discard
 
-def take(players, deck, sizeFullHand):
+def take(players, deck, sizeFullHand=6):
 	for player in players:
 		while( len(player.hand) < sizeFullHand):
 			if (len(deck) > 0):
@@ -85,6 +85,7 @@ def take(players, deck, sizeFullHand):
 				return
 
 def playARound(attacker, defender, kozer_suit, discard):
+	''' This function is hella long. This is where most of the magic happens'''
 	# internal variables
 	_buffer = [] # cards to be taken or discarded, depending on defender
 
