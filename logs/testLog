@@ -1,22 +1,8 @@
 INFO:root:Top of playAGame, kozer=Diamonds
-DEBUG:parso.cache:pickle loaded: /usr/lib/python3/dist-packages/jedi/third_party/typeshed/stdlib/2and3/builtins.pyi
-ERROR:root:File `'amin.py'` not found.
-INFO:root:Top of playAGame, kozer=Diamonds
-ERROR:root:File `'amin.py'` not found.
-INFO:root:Top of playAGame, kozer=Diamonds
-INFO:root:Top of playAGame, kozer=Diamonds
-INFO:root:Top of playAGame, kozer=Diamonds
-INFO:root:Top of playAGame, kozer=Diamonds
-INFO:root:Top of playAGame, kozer=Diamonds
-INFO:root:Top of playAGame, kozer=Diamonds
-DEBUG:parso.python.diff:diff parser start
-DEBUG:parso.python.diff:line_lengths old: 1; new: 1
-DEBUG:parso.python.diff:-> code[replace] old[1:1] new[1:1]
-DEBUG:parso.python.diff:parse_part from 1 to 1 (to 0 in part parser)
-DEBUG:parso.python.diff:diff parser end
-INFO:root:Top of playAGame, kozer=Diamonds
-DEBUG:parso.python.diff:diff parser start
-DEBUG:parso.python.diff:line_lengths old: 1; new: 1
-DEBUG:parso.python.diff:-> code[replace] old[1:1] new[1:1]
-DEBUG:parso.python.diff:parse_part from 1 to 1 (to 0 in part parser)
-DEBUG:parso.python.diff:diff parser end
+INFO:root:------- Top of playARound() ----------
+INFO:root:	attacker = josh
+INFO:root:	defender = nua
+INFO:root:	discard = []
+INFO:root:attacker (josh) attacks with: [Card(value='7', suit='Hearts')]
+INFO:root: ////////// nua succesfully defends the [7 of Hearts] with the [Ace of Diamonds] \\\\\\\\\\ 
+INFO:root:attacker (josh) adds: [Card(value='7', suit='Diamonds')]

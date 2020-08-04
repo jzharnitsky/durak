@@ -86,13 +86,21 @@ def take(players, deck, sizeFullHand=6):
 
 def playARound(attacker, defender, kozer_suit, discard):
 	''' This function is hella long. This is where most of the magic happens'''
+
+	# log relevant info
+	logger.info("------- Top of playARound() ----------")
+	logger.info("\tattacker = " + attacker.name)
+	logger.info("\tdefender = " + defender.name)
+	logger.info("\tdiscard = " + str(discard))
+
 	# internal variables
-	_buffer = [] # cards to be taken or discarded, depending on defender
+	_buffer = [] # 'coverd' cards on table. Will eventually be taken or discarded 
 
 	# attacker attacks with any card (or multiple of same value)
 	print(colored("\n" + s + attacker.name + s + "ATTACK" + s + defender.name + s, 'yellow'))
 	print(colored(attacker.name + "- select card to attack with:"))
 	_cardsToDefend = attacker.attack()
+	logger.info("attacker (" + attacker.name + ") attacks with: " + str(_cardsToDefend))
 
 	# defender defends until no more cards to defend TODO: (or 6 total)
 	print(colored("\n" + s + defender.name + s + "DEFEND" + s + attacker.name + s, 'cyan'))
@@ -125,10 +133,13 @@ def playARound(attacker, defender, kozer_suit, discard):
 			# print success message
 			print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
 			 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
+			logger.info(s + defender.name + " succesfully defends the [" + str(card_to_def) \
+			 + "] with the [" + str(card_to_def_with) + "]" + b)
 
 			# attacker optionally add cards
 			print(colored("DEFENDER (" + defender.name.upper() + ") CARD COUNT:" + str(defender.lengthHand())))
 			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend)
+			logger.info("attacker (" + attacker.name + ") adds: " + str(cardsToAdd))
 			for card in cardsToAdd:
 				_cardsToDefend.append(card)
 					
