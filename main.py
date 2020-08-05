@@ -22,7 +22,7 @@ def main():
 
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	print(colored("welcome! kozer = " + kozer))
-	logger.info("Top of playAGame, kozer=" + kozer)
+	logger.info(colored(s + "Top of playAGame, kozer=" + kozer + b, 'yellow'))
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
 		playARound(attacker, defender, kozer, discard)
@@ -32,9 +32,11 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		
 		# See if someone won, and return winner
 		if ((len(deck) == 0) and (len(attacker.hand) <= 1)):
+			logger.info(colored("GAME OVER, winner was: " + attacker.name,'yellow'))
 			return attacker
 
 		if ((len(deck) == 0) and (len(defender.hand) == 0)):
+			logger.info(colored("GAME OVER, winner was: " + defender.name,'yellow'))
 			return defender
 
 		# some messages
@@ -43,8 +45,11 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 		print(defender.name, "hand is now: " + defender.prettyHand())
 		print(colored("\nlen(deck) is now: " + str(len(deck))))
 		print(colored("discard = " + str(discard))) #TODO: make method shortPrettyPrint() or something 
-													# use it to print discard, also in prettyPrintHand
-													# if (len(hand)) > 12 shortPrettyPrint() :)
+		logger.info("\n\n------ After Round --------\n")
+		logger.info(attacker.name,"hand is now: " + attacker.prettyHand())
+		logger.info(defender.name, "hand is now: " + defender.prettyHand())
+		logger.info("\nlen(deck) is now: " + str(len(deck)))
+		logger.info("discard = " + str(discard)) 
 
 		# switch places
 		if not (defender.justTook()):
@@ -53,6 +58,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 			defender = temp
 		else:
 			print(colored("~~~~~~ Defender took, so attacker attacks again ~~~~~~"))
+			logger.info("~~~ Defender took, so attacker ("+attacker.name+") attacks ~~~")
 			defender.set_justTook(False)
 
 def initGame():
@@ -104,9 +110,12 @@ def playARound(attacker, defender, kozer_suit, discard):
 
 	# defender defends until no more cards to defend TODO: (or 6 total)
 	print(colored("\n" + s + defender.name + s + "DEFEND" + s + attacker.name + s, 'cyan'))
+	logger.info("defender (" + defender.name + ") begins defense")
 	while(len(_cardsToDefend) > 0):
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
+		logger.info("card_to_def = " + str(card_to_def))
+		logger.info("card_to_def_with = " + str(card_to_def_with))
 
 		# check if defender took
 		if (card_to_def == 'take'):
@@ -125,16 +134,18 @@ def playARound(attacker, defender, kozer_suit, discard):
 		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
 
 			# remove cards from hand and _cardsToDefend and add to buffer
+			logger.info(colored("Defender succesfully defends!!", 'green'))
 			defender.removeCards(card_to_def_with)
 			_cardsToDefend.remove(card_to_def)
 			_buffer.append(card_to_def)
 			_buffer.append(card_to_def_with)
+			logger.info("_buffer is now: " + str([str(x) for x in _buffer]))
 
 			# print success message
 			print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
 			 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
-			logger.info(s + defender.name + " succesfully defends the [" + str(card_to_def) \
-			 + "] with the [" + str(card_to_def_with) + "]" + b)
+			logger.info(colored(s + defender.name + " succesfully defends the [" + \
+            str(card_to_def) + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
 
 			# attacker optionally add cards
 			print(colored("DEFENDER (" + defender.name.upper() + ") CARD COUNT:" + str(defender.lengthHand())))
@@ -144,6 +155,8 @@ def playARound(attacker, defender, kozer_suit, discard):
 				_cardsToDefend.append(card)
 					
 		else: # else for 'if (checkBeats):'
+			logger.info(colored(x + "Defenders' selection is invalid, " + "["  + \
+			str(card_to_def_with) + "] doesn't beat the [" + str(card_to_def) + "] " + x, 'red'))
 			print(colored(x + "FOOL YOU CANT BEAT THE [" + str(card_to_def) + "] WITH THE " \
 				+ "[" + str(card_to_def_with) + "]" + x,'red'))
 
