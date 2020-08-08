@@ -25,31 +25,29 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	logger.info(colored(s + "Top of playAGame, kozer=" + kozer + b, 'yellow'))
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
-		playARound(attacker, defender, kozer, discard)
+		cw = playARound(attacker, defender, kozer, discard, deck)
+		if cw != None:
+			return cw
 
 		# take, changes everyones hands and deck accordingly
 		take((attacker, defender), deck)
 		
 		# See if someone won, and return winner
-		if ((len(deck) == 0) and (len(attacker.hand) <= 1)):
-			logger.info(colored("GAME OVER, winner was: " + attacker.name,'yellow'))
-			return attacker
-
-		if ((len(deck) == 0) and (len(defender.hand) == 0)):
-			logger.info(colored("GAME OVER, winner was: " + defender.name,'yellow'))
-			return defender
+		cw = checkWinner(attacker, defender, len(deck))
+		if cw != None:
+			return cw
 
 		# some messages
 		print(colored("\n\n------ After Round --------\n"))
 		print(attacker.name,"hand is now: " + attacker.prettyHand())
 		print(defender.name, "hand is now: " + defender.prettyHand())
 		print(colored("\nlen(deck) is now: " + str(len(deck))))
-		print(colored("discard = " + str(discard))) #TODO: make method shortPrettyPrint() or something 
+		print(colored("discard = " + prettyShort(discard))) #TODO: make method shortPrettyPrint() or something 
 		logger.info("\n\n------ After Round --------\n")
-		logger.info(attacker.name,"hand is now: " + attacker.prettyHand())
-		logger.info(defender.name, "hand is now: " + defender.prettyHand())
+		logger.info(attacker.name + " hand is now: " + attacker.prettyHand(True))
+		logger.info(defender.name + " hand is now: " + defender.prettyHand(True))
 		logger.info("\nlen(deck) is now: " + str(len(deck)))
-		logger.info("discard = " + str(discard)) 
+		logger.info("discard = " + prettyShort(discard)) 
 
 		# switch places
 		if not (defender.justTook()):
@@ -90,7 +88,7 @@ def take(players, deck, sizeFullHand=6):
 				print(colored("DECK IS NOW EMPTY"))
 				return
 
-def playARound(attacker, defender, kozer_suit, discard):
+def playARound(attacker, defender, kozer_suit, discard, deck):
 	''' This function is hella long. This is where most of the magic happens'''
 
 	# log relevant info
@@ -100,13 +98,17 @@ def playARound(attacker, defender, kozer_suit, discard):
 	logger.info("\tdiscard = " + str(discard))
 
 	# internal variables
-	_buffer = [] # 'coverd' cards on table. Will eventually be taken or discarded 
+	_buffer = [] 							# covered pairs on table. Will eventually be taken or discarded 
+	cardCount = 0 							# how many cards have been played
+	MAXCARDS = min(6, len(defender.hand)) 	# max cards that can be played
 
 	# attacker attacks with any card (or multiple of same value)
 	print(colored("\n" + s + attacker.name + s + "ATTACK" + s + defender.name + s, 'yellow'))
 	print(colored(attacker.name + "- select card to attack with:"))
-	_cardsToDefend = attacker.attack()
+	_cardsToDefend = attacker.attack(MAXCARDS)
 	logger.info("attacker (" + attacker.name + ") attacks with: " + str(_cardsToDefend))
+	cardCount += len(_cardsToDefend)
+	logger.info("cardCount = " + str(cardCount))
 
 	# defender defends until no more cards to defend TODO: (or 6 total)
 	print(colored("\n" + s + defender.name + s + "DEFEND" + s + attacker.name + s, 'cyan'))
@@ -117,42 +119,43 @@ def playARound(attacker, defender, kozer_suit, discard):
 		logger.info("card_to_def = " + str(card_to_def))
 		logger.info("card_to_def_with = " + str(card_to_def_with))
 
-		# check if defender took
-		if (card_to_def == 'take'):
-			defender.take(_buffer)
-			defender.take(_cardsToDefend)
-			_cardsToDefend = [] #Is this line necessary?
-			defender.set_justTook(True)
-			return 
-			
-		# bug fixing
-		if type(card_to_def) == list:
-			card_to_def = card_to_def[0]
-		card_to_def_with = card_to_def_with[0]
-
 		# Check if cards actually beats
-		if checkBeats(card_to_def, card_to_def_with, kozer_suit):
+		if (card_to_def == 'take'):
+			defender.set_justTook(True)
+		if (defender.justTook()) or checkBeats(card_to_def, card_to_def_with, kozer_suit):
+			if not (defender.justTook()): # if checkBeats() but dont run checkBeats twice
+				# print success message
+				print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
+				 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
+				logger.info(colored(s + defender.name + " succesfully defends the [" + \
+				str(card_to_def) + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
 
-			# remove cards from hand and _cardsToDefend and add to buffer
-			logger.info(colored("Defender succesfully defends!!", 'green'))
-			defender.removeCards(card_to_def_with)
-			_cardsToDefend.remove(card_to_def)
-			_buffer.append(card_to_def)
-			_buffer.append(card_to_def_with)
-			logger.info("_buffer is now: " + str([str(x) for x in _buffer]))
-
-			# print success message
-			print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
-			 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
-			logger.info(colored(s + defender.name + " succesfully defends the [" + \
-            str(card_to_def) + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
+				# remove cards from hand and _cardsToDefend and add to buffer
+				logger.info(colored("Defender succesfully defends!!", 'green'))
+				defender.removeCards(card_to_def_with)
+				_cardsToDefend.remove(card_to_def)
+				_buffer.append(card_to_def)
+				_buffer.append(card_to_def_with)
+				logger.info("_buffer is now: " + str([str(x) for x in _buffer]))
 
 			# attacker optionally add cards
-			print(colored("DEFENDER (" + defender.name.upper() + ") CARD COUNT:" + str(defender.lengthHand())))
-			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend)
+			print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(defender.lengthHand()),'yellow'))
+			print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
+			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend, MAXCARDS-cardCount)
 			logger.info("attacker (" + attacker.name + ") adds: " + str(cardsToAdd))
+			# See if someone won, and return winner
+			cw = checkWinner(attacker, defender, len(deck))
+			if cw != None:
+				return cw
 			for card in cardsToAdd:
 				_cardsToDefend.append(card)
+
+			# check if defender took
+			if (defender.justTook()):
+				defender.take(_buffer)
+				defender.take(_cardsToDefend)
+				_cardsToDefend = [] #Is this line necessary?
+				return 
 					
 		else: # else for 'if (checkBeats):'
 			logger.info(colored(x + "Defenders' selection is invalid, " + "["  + \
@@ -170,21 +173,22 @@ class Player:
 		self.hand = hand
 		self.took = took # flag for if player just took
 
-	def attack(self):
+	def attack(self, num): #num = num(cards) allowed to be played
 		# attack with any card
-		attack_cards = selectCards(self.name, self.hand, "to attack with")
-		self.removeCards(attack_cards)
-		return attack_cards
+		while(True):
+			attack_cards = selectCards(self.name, self.hand, "to attack with")
+			if len(attack_cards) <= num:
+				self.removeCards(attack_cards)
+				return attack_cards
+			print(colored(x + "yo you can only add " + str(num) + " cards" + x,'red'))
 
-	def prettyHand(self):
+	def prettyHand(self, short=False):
 		r0 = r1 = r2 = r3 = r4 = r5 = strCat = ""
 		self.hand = durakSort(self.hand)
 
 		# if hand is too long dont prettyPrint
-		if (len(self.hand) > 12):
-			for card in self.hand:
-				strCat += card.value + prettyPrintSuit(card.suit) + " "
-			return strCat
+		if ((len(self.hand) > 12) or (short)):
+			return prettyShort(self.hand)
 
 		for card in self.hand:
 			symbol = prettyPrintSuit(card.suit)
@@ -209,9 +213,12 @@ class Player:
 		print(colored("Time to Defend " + self.name + " your hand is:\n " + self.prettyHand()))
 
 		# select card to defend
-		card_to_defend = selectCards(self.name, hand, "to defend (OR 'take' TO TAKE)")
+		if (len(hand) > 1):
+			card_to_defend = selectCards(self.name, hand, "to defend (OR 'take' TO TAKE)")
+		else:
+			card_to_defend = hand
 
-		# check if user took
+		# check if user took (during first selection)
 		if (card_to_defend == 'take'):
 			return ('take', 'take')
 		
@@ -220,9 +227,14 @@ class Player:
 		strCat = "to defend the [" + sym + " " + str(card_to_defend[0]) + " " + sym + "] with (OR 'take' TO TAKE)"
 		card_to_defend_with = selectCards(self.name,self.hand, strCat)
 		
-		# check if user took (again)
+		# check if user took (during second selection)
 		if (card_to_defend_with == 'take'):
 			return ('take', 'take')
+
+		# bug fixing
+		if type(card_to_defend) == list:
+			card_to_defend = card_to_defend[0]
+		card_to_defend_with = card_to_defend_with[0]
 
 		# return if user defended successfully
 		return(card_to_defend, card_to_defend_with)
@@ -231,17 +243,19 @@ class Player:
 		for item in list(junk):
 			self.hand.append(item)
 
-	def addCards(self, cards_played):
+	def addCards(self, cards_played, allowed):
 		legal_attack_cards = []
 		listOfLegalValues = list(set(x.value for x in cards_played))
 		print("LEGAL CARDS FOR ADDING:", listOfLegalValues)
-		while(True):
+		while(True): # TODO
 			ac = selectCards(self.name, self.hand, "to add on (or 'done')")
 			if (type(ac) != list and ((ac.lower() == 'done') or (ac == ''))):
 				return []
-			if (len(ac) > 0):
+			if (len(ac) > allowed):
+				print(colored(x + "FOOL you can only add " + str(allowed) + " cards" + x, 'red'))
+			if (len(ac) > 0): #TODO check if this can be replaced with 'else:'
 				for card in ac:
-					if card.value in listOfLegalValues:
+					if type(card) == pd.card.Card and (card.value in listOfLegalValues):
 						legal_attack_cards.append(card)
 					else:
 						print(colored(x + "FOOL you can't add [" + str(card) + "]" + x, 'red'))
@@ -273,23 +287,39 @@ class Player:
 	def set_justTook(self, took_):
 		self.took = took_
 
+def checkWinner(attacker, defender, deckLength):
+	if ((deckLength == 0) and (len(attacker.hand) == 0)):
+		logger.info(colored("GAME OVER, winner was: " + attacker.name,'yellow'))
+		return attacker
+
+	if ((deckLength == 0) and (len(defender.hand) == 0)):
+		logger.info(colored("GAME OVER, winner was: " + defender.name,'yellow'))
+		return defender
+	return None
+
 def prettyPrintSuit(suit):
 	l = {'Spades':   '♠','Diamonds': '♦','Hearts':   '♥','Clubs':    '♣', }
 	return l[suit]
+
+def prettyShort(stack):
+	strCat = ""
+	for card in stack:
+		strCat += card.value + prettyPrintSuit(card.suit) + " "
+	return str(strCat)
 
 def selectCards(name, stack, msg_append = ""):
 	while True:
 		returnList = [] 
 
 		# if one item in list return item
-		if (type(stack) == pd.card.Card):
-			return [stack]
-		if (len(stack) == 1):
-			return stack
+	#	if (type(stack) == pd.card.Card):
+#			return [stack]
+#		if (len(stack) == 1):
+#			return stack
 
 		# Create list_valid_entries
 		list_valid_strings = ['done', 'take']	
-		list_valid_entries = list_valid_strings + [str(x) for x in range(0, len(stack))]
+		list_valid_entries = [str(x) for x in range(0, len(stack))]
 		stack = durakSort(stack)
 
 		# print stuff
@@ -308,7 +338,7 @@ def selectCards(name, stack, msg_append = ""):
 			if (user_input.lower() in list_valid_strings):
 				print(colored("that WAS in the list of valid strings", 'yellow'))
 				return user_input.lower()
-			if (selection in list_valid_entries):
+			if (selection.strip() in list_valid_entries):
 				returnList.append(stack[int(selection)])
 			else:
 				print(colored("ok that was an invalid entry *cough* NUA *cough*", 'red'))

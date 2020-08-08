@@ -1,8 +1,95 @@
-INFO:root:Top of playAGame, kozer=Diamonds
+INFO:root:[33m ////////// Top of playAGame, kozer=Diamonds \\\\\\\\\\ [0m
 INFO:root:------- Top of playARound() ----------
 INFO:root:	attacker = josh
 INFO:root:	defender = nua
 INFO:root:	discard = []
-INFO:root:attacker (josh) attacks with: [Card(value='7', suit='Hearts')]
-INFO:root: ////////// nua succesfully defends the [7 of Hearts] with the [Ace of Diamonds] \\\\\\\\\\ 
-INFO:root:attacker (josh) adds: [Card(value='7', suit='Diamonds')]
+INFO:root:attacker (josh) attacks with: [Card(value='6', suit='Clubs'), Card(value='6', suit='Spades'), Card(value='7', suit='Hearts'), Card(value='8', suit='Hearts'), Card(value='10', suit='Spades'), Card(value='10', suit='Diamonds')]
+INFO:root:cardCount = 6
+INFO:root:defender (nua) begins defense
+INFO:root:card_to_def = take
+INFO:root:card_to_def_with = take
+INFO:root:attacker (josh) adds: []
+INFO:root:
+
+------ After Round --------
+
+INFO:root:josh hand is now: 9♥ Jack♣ Jack♠ Queen♣ Ace♥ 9♦ 
+INFO:root:nua hand is now: 6♣ 6♠ 7♥ 8♣ 8♥ 9♠ 10♠ Queen♥ Queen♠ Ace♣ 10♦ Jack♦ 
+INFO:root:
+len(deck) is now: 6
+INFO:root:discard = 
+INFO:root:~~~ Defender took, so attacker (josh) attacks ~~~
+INFO:root:------- Top of playARound() ----------
+INFO:root:	attacker = josh
+INFO:root:	defender = nua
+INFO:root:	discard = []
+INFO:root:attacker (josh) attacks with: [Card(value='9', suit='Diamonds'), Card(value='Ace', suit='Hearts'), Card(value='Queen', suit='Clubs'), Card(value='Jack', suit='Spades')]
+INFO:root:cardCount = 4
+INFO:root:defender (nua) begins defense
+INFO:root:card_to_def = take
+INFO:root:card_to_def_with = take
+INFO:root:attacker (josh) adds: []
+INFO:root:
+
+------ After Round --------
+
+INFO:root:josh hand is now: 7♣ 8♠ 9♥ Jack♣ King♠ Ace♦ 
+INFO:root:nua hand is now: 6♣ 6♠ 7♥ 8♣ 8♥ 9♠ 10♠ Jack♠ Queen♣ Queen♥ Queen♠ Ace♣ Ace♥ 9♦ 10♦ Jack♦ 
+INFO:root:
+len(deck) is now: 2
+INFO:root:discard = 
+INFO:root:~~~ Defender took, so attacker (josh) attacks ~~~
+INFO:root:------- Top of playARound() ----------
+INFO:root:	attacker = josh
+INFO:root:	defender = nua
+INFO:root:	discard = []
+INFO:root:attacker (josh) attacks with: [Card(value='Ace', suit='Diamonds'), Card(value='King', suit='Spades'), Card(value='Jack', suit='Clubs'), Card(value='9', suit='Hearts')]
+INFO:root:cardCount = 4
+INFO:root:defender (nua) begins defense
+INFO:root:card_to_def = take
+INFO:root:card_to_def_with = take
+INFO:root:attacker (josh) adds: []
+INFO:root:
+
+------ After Round --------
+
+INFO:root:josh hand is now: 7♣ 7♠ 8♠ Ace♠ 
+INFO:root:nua hand is now: 6♣ 6♠ 7♥ 8♣ 8♥ 9♥ 9♠ 10♠ Jack♣ Jack♠ Queen♣ Queen♥ Queen♠ King♠ Ace♣ Ace♥ 9♦ 10♦ Jack♦ Ace♦ 
+INFO:root:
+len(deck) is now: 0
+INFO:root:discard = 
+INFO:root:~~~ Defender took, so attacker (josh) attacks ~~~
+INFO:root:------- Top of playARound() ----------
+INFO:root:	attacker = josh
+INFO:root:	defender = nua
+INFO:root:	discard = []
+INFO:root:attacker (josh) attacks with: [Card(value='Ace', suit='Spades'), Card(value='8', suit='Spades')]
+INFO:root:cardCount = 2
+INFO:root:defender (nua) begins defense
+INFO:root:card_to_def = take
+INFO:root:card_to_def_with = take
+INFO:root:attacker (josh) adds: []
+INFO:root:
+
+------ After Round --------
+
+INFO:root:josh hand is now: 7♣ 7♠ 
+INFO:root:nua hand is now: 6♣ 6♠ 7♥ 8♣ 8♥ 8♠ 9♥ 9♠ 10♠ Jack♣ Jack♠ Queen♣ Queen♥ Queen♠ King♠ Ace♣ Ace♥ Ace♠ 9♦ 10♦ Jack♦ Ace♦ 
+INFO:root:
+len(deck) is now: 0
+INFO:root:discard = 
+INFO:root:~~~ Defender took, so attacker (josh) attacks ~~~
+INFO:root:------- Top of playARound() ----------
+INFO:root:	attacker = josh
+INFO:root:	defender = nua
+INFO:root:	discard = []
+INFO:root:attacker (josh) attacks with: [Card(value='7', suit='Clubs')]
+INFO:root:cardCount = 1
+INFO:root:defender (nua) begins defense
+INFO:root:card_to_def = 7 of Clubs
+INFO:root:card_to_def_with = 8 of Clubs
+INFO:root:[32m ////////// nua succesfully defends the [7 of Clubs] with the [8 of Clubs] \\\\\\\\\\ [0m
+INFO:root:[32mDefender succesfully defends!![0m
+INFO:root:_buffer is now: ['7 of Clubs', '8 of Clubs']
+INFO:root:attacker (josh) adds: [Card(value='7', suit='Spades')]
+INFO:root:[33mGAME OVER, winner was: josh[0m

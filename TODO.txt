@@ -1,5 +1,13 @@
 	***------ List of tasks for Josh -----***
-- Allow player to 'add cards' after defender takes before next roun d starts	
-- list legal moves
+- As soon as attacker out of cards, game should be over (RN it lets defender defend
+- check for number of cards when attacking and adding cards
 
+FOR AI
+	- list legal moves
+	- Cards in hand
+	- Discard (aka history)
+
+LONG TERM
+	- make all print messages functions 
+		- ex: printAtkMsg(attacker.name, defender.name)
 
