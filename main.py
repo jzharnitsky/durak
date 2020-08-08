@@ -7,6 +7,7 @@ kozer = 'Diamonds'
 s = " ////////// "
 b  = " \\\\\\\\\\\\\\\\\\\\ "
 x =" |!|!|!|!|!|!| "  
+g_MAXCARDSDISPLAY = 7
 
 # create and configure logger
 logging.basicConfig(filename = "./logs/testLog",level = logging.DEBUG, filemode = 'w')
@@ -25,6 +26,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	logger.info(colored(s + "Top of playAGame, kozer=" + kozer + b, 'yellow'))
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly
+		# if winner: return winner, else: return None
 		cw = playARound(attacker, defender, kozer, discard, deck)
 		if cw != None:
 			return cw
@@ -86,6 +88,7 @@ def take(players, deck, sizeFullHand=6):
 				player.take(deck.deal(1))
 			else:
 				print(colored("DECK IS NOW EMPTY"))
+				logger.info("Inside take, DECK IS NOW EMPTY")
 				return
 
 def playARound(attacker, defender, kozer_suit, discard, deck):
@@ -95,7 +98,7 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 	logger.info("------- Top of playARound() ----------")
 	logger.info("\tattacker = " + attacker.name)
 	logger.info("\tdefender = " + defender.name)
-	logger.info("\tdiscard = " + str(discard))
+	logger.info("\tdiscard = " + prettyShort(discard))
 
 	# internal variables
 	_buffer = [] 							# covered pairs on table. Will eventually be taken or discarded 
@@ -106,7 +109,12 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 	print(colored("\n" + s + attacker.name + s + "ATTACK" + s + defender.name + s, 'yellow'))
 	print(colored(attacker.name + "- select card to attack with:"))
 	_cardsToDefend = attacker.attack(MAXCARDS)
-	logger.info("attacker (" + attacker.name + ") attacks with: " + str(_cardsToDefend))
+	# See if someone won, and return winner
+	cw = checkWinner(attacker, defender, len(deck))
+	if cw != None:
+		return cw
+	
+	logger.info("attacker (" + attacker.name + ") attacks with: " + prettyShort(_cardsToDefend))
 	cardCount += len(_cardsToDefend)
 	logger.info("cardCount = " + str(cardCount))
 
@@ -128,7 +136,7 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 				print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
 				 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
 				logger.info(colored(s + defender.name + " succesfully defends the [" + \
-				str(card_to_def) + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
+				prettyShort(card_to_def) + "] with the [" + prettyShort(card_to_def_with) + "]" + b, 'green'))
 
 				# remove cards from hand and _cardsToDefend and add to buffer
 				logger.info(colored("Defender succesfully defends!!", 'green'))
@@ -136,13 +144,14 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 				_cardsToDefend.remove(card_to_def)
 				_buffer.append(card_to_def)
 				_buffer.append(card_to_def_with)
-				logger.info("_buffer is now: " + str([str(x) for x in _buffer]))
+				logger.info("_buffer is now: " + prettyShort(_buffer))
+				#logger.info("_buffer is now: " + str([str(x) for x in _buffer])) #TODO: see if this is beter
 
 			# attacker optionally add cards
 			print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(defender.lengthHand()),'yellow'))
 			print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
 			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend, MAXCARDS-cardCount)
-			logger.info("attacker (" + attacker.name + ") adds: " + str(cardsToAdd))
+			logger.info("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd))
 			# See if someone won, and return winner
 			cw = checkWinner(attacker, defender, len(deck))
 			if cw != None:
@@ -159,7 +168,7 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 					
 		else: # else for 'if (checkBeats):'
 			logger.info(colored(x + "Defenders' selection is invalid, " + "["  + \
-			str(card_to_def_with) + "] doesn't beat the [" + str(card_to_def) + "] " + x, 'red'))
+			prettyShort(card_to_def_with) + "] doesn't beat the [" + prettyShort(card_to_def) + "] " + x, 'red'))
 			print(colored(x + "FOOL YOU CANT BEAT THE [" + str(card_to_def) + "] WITH THE " \
 				+ "[" + str(card_to_def_with) + "]" + x,'red'))
 
@@ -187,7 +196,7 @@ class Player:
 		self.hand = durakSort(self.hand)
 
 		# if hand is too long dont prettyPrint
-		if ((len(self.hand) > 12) or (short)):
+		if ((len(self.hand) > g_MAXCARDSDISPLAY) or (short)):
 			return prettyShort(self.hand)
 
 		for card in self.hand:
@@ -245,8 +254,18 @@ class Player:
 
 	def addCards(self, cards_played, allowed):
 		legal_attack_cards = []
+		have_legal_cards = False
 		listOfLegalValues = list(set(x.value for x in cards_played))
 		print("LEGAL CARDS FOR ADDING:", listOfLegalValues)
+		for card in self.hand:
+			if card.value in listOfLegalValues:
+				have_legal_cards = True
+
+		if not have_legal_cards:
+			print(colored("No Cards can be added by attacker, moving on...",'blue'))
+			logger.info("No cards can be added by attacker, moving on...")
+			return []
+			
 		while(True): # TODO
 			ac = selectCards(self.name, self.hand, "to add on (or 'done')")
 			if (type(ac) != list and ((ac.lower() == 'done') or (ac == ''))):
@@ -303,9 +322,11 @@ def prettyPrintSuit(suit):
 
 def prettyShort(stack):
 	strCat = ""
+	if type(stack) != list:
+		stack = [stack]
 	for card in stack:
 		strCat += card.value + prettyPrintSuit(card.suit) + " "
-	return str(strCat)
+	return str(strCat).rstrip()
 
 def selectCards(name, stack, msg_append = ""):
 	while True:

@@ -1,8 +1,7 @@
 	***------ List of tasks for Josh -----***
-- As soon as attacker out of cards, game should be over (RN it lets defender defend
-- check for number of cards when attacking and adding cards
-
 FOR AI
+	- dont prompt if no legal moves
+		- replace with helpful message
 	- list legal moves
 	- Cards in hand
 	- Discard (aka history)
@@ -10,4 +9,6 @@ FOR AI
 LONG TERM
 	- make all print messages functions 
 		- ex: printAtkMsg(attacker.name, defender.name)
+
+hand = [8, ZZ10, 10, Q, A, 8k]
 
