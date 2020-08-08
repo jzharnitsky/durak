@@ -3,11 +3,13 @@ import logging
 import inspect
 from pydealer import Card
 from termcolor import colored
+
+# globals
 kozer = 'Diamonds'
 s = " ////////// "
 b  = " \\\\\\\\\\\\\\\\\\\\ "
 x =" |!|!|!|!|!|!| "  
-g_MAXCARDSDISPLAY = 7
+g_MAXCARDSDISPLAY = 12 # max num cards pretty printed on screen
 
 # create and configure logger
 logging.basicConfig(filename = "./logs/testLog",level = logging.DEBUG, filemode = 'w')
@@ -18,15 +20,14 @@ def main():
 	josh, manny, nua, adam, kozer, deck, discard = initGame()
 
 	# play a game, returns 'winner'
-	winner = playAGame(josh, nua, kozer, deck)
+	winner = playAGame(josh, adam, kozer, deck)
 	print(colored("Game Over! Winner was " + winner.name))
 
 def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 	print(colored("welcome! kozer = " + kozer))
 	logger.info(colored(s + "Top of playAGame, kozer=" + kozer + b, 'yellow'))
 	while(True):
-		# plays a round, changes everyones hand + discard accordingly
-		# if winner: return winner, else: return None
+		# plays a round, changes everyones hand + discard accordingly. returns winner if there is one
 		cw = playARound(attacker, defender, kozer, discard, deck)
 		if cw != None:
 			return cw
@@ -40,9 +41,7 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 			return cw
 
 		# some messages
-		print(colored("\n\n------ After Round --------\n"))
-		print(attacker.name,"hand is now: " + attacker.prettyHand())
-		print(defender.name, "hand is now: " + defender.prettyHand())
+		print(colored("------ After Round --------"))
 		print(colored("\nlen(deck) is now: " + str(len(deck))))
 		print(colored("discard = " + prettyShort(discard))) #TODO: make method shortPrettyPrint() or something 
 		logger.info("\n\n------ After Round --------\n")
@@ -77,7 +76,7 @@ def initGame():
 	josh = Player("josh", hands[0])
 	manny = Player("manny", hands[1])
 	nua = Player("nua", hands[2])
-	adam = Player("adam", hands[3])
+	adam = dumbAI("adam", hands[3])
 
 	return josh, manny, nua, adam, kozer, deck, discard
 
@@ -107,9 +106,10 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 
 	# attacker attacks with any card (or multiple of same value)
 	print(colored("\n" + s + attacker.name + s + "ATTACK" + s + defender.name + s, 'yellow'))
+	print(colored(str(MAXCARDS) + "cards can be played",'yellow'))
 	print(colored(attacker.name + "- select card to attack with:"))
 	_cardsToDefend = attacker.attack(MAXCARDS)
-	# See if someone won, and return winner
+	# See if attacker just got rid of all cards and won
 	cw = checkWinner(attacker, defender, len(deck))
 	if cw != None:
 		return cw
@@ -152,6 +152,7 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 			print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
 			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend, MAXCARDS-cardCount)
 			logger.info("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd))
+			print(colored("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd) ,'yellow'))
 			# See if someone won, and return winner
 			cw = checkWinner(attacker, defender, len(deck))
 			if cw != None:
@@ -262,8 +263,8 @@ class Player:
 				have_legal_cards = True
 
 		if not have_legal_cards:
-			print(colored("No Cards can be added by attacker, moving on...",'blue'))
-			logger.info("No cards can be added by attacker, moving on...")
+			print(colored("No Cards can be added by attacker, moving on...",'yellow'))
+			logger.info(colored("No cards can be added by attacker, moving on...", 'yellow'))
 			return []
 			
 		while(True): # TODO
@@ -287,6 +288,7 @@ class Player:
 
 		# if cards is a single card
 		if (type(cards) == pd.card.Card):
+			logger.info("inside removeCards, boutta remove: " + str(cards))
 			self.hand.remove(cards)
 		else:
 			for card in cards:
@@ -305,6 +307,65 @@ class Player:
 
 	def set_justTook(self, took_):
 		self.took = took_
+
+class dumbAI(Player):
+	def attack(self, num):
+		# attacks with the lowest card
+		atk_card = self.hand[0]
+		logger.info("Inside dumbAI::attack()")
+		self.removeCards(atk_card)
+		logger.info("dumbAI::attack() Boutta return: " + str(atk_card))
+		logger.info("dumbAI(" + self.name + ") hand is now: " + str(self.hand))
+		return [atk_card]
+
+	def addCards(self, cards_played, allowed): #dumbAI
+		length = len(cards_played)
+		MAX = Card(value='Jack', suit='Diamonds')
+		logger.info("Top of dumbAI::addCards")
+		add_cards = []
+		have_legal_cards = False
+		listOfLegalValues = list(set(x.value for x in cards_played))
+		print("LEGAL CARDS FOR ADDING:", listOfLegalValues)
+		logger.info("LEGAL CARDS FOR ADDING: " + str(listOfLegalValues))
+		
+		for card in self.hand:
+			if card.value in listOfLegalValues:
+				if card.suit != kozer or (length > 3 and card.lt(MAX)):
+					if len(add_cards) < allowed:
+						add_cards.append(card)
+					else:
+						logger.info(colored("Aight thats all the cards that can be added",'yellow'))
+		
+		logger.info("add_cards is now: " + str(add_cards))
+		if (len(add_cards) > 0):
+			logger.info("boutta return add_cards = " + str(add_cards))
+			self.removeCards(add_cards)
+			logger.info("dumbAI(" + self.name + ") hand is now: " + str(self.hand))
+			return add_cards
+		else:
+			print(colored("No Cards can be added by attacker, moving on...",'yellow'))
+			logger.info(colored("No cards can be added by attacker, moving on...", 'yellow'))
+			logger.info("dumbAI(" + self.name + ") hand is now: " + str(self.hand))
+			return []
+
+	def defend(self, hand): #dumbAI
+		logger.info("Top of dumbAI::defend()")	
+
+		# select card to defend
+		if (len(hand) > 1):
+			card_to_defend = selectLowestCard(hand)
+		else:
+			card_to_defend = hand[0]
+	
+		# check each card if it beats
+		for card in self.hand:
+			logger.info("checking if " + str(card) + "beats " + str(card_to_defend))
+			if checkBeats(card_to_defend, card, kozer):
+				logger.info("It WORKS! Returning: " + str(card))
+				return (card_to_defend, card)
+		print(colored("AI aint got nothing, forced to TAKE", 'red'))
+		logger.info("Oh Bummer, I got nothing. Returning ('take', 'take')")
+		return ('take', 'take')
 
 def checkWinner(attacker, defender, deckLength):
 	if ((deckLength == 0) and (len(attacker.hand) == 0)):
@@ -327,6 +388,10 @@ def prettyShort(stack):
 	for card in stack:
 		strCat += card.value + prettyPrintSuit(card.suit) + " "
 	return str(strCat).rstrip()
+
+def selectLowestCard(stack):
+	stack = durakSort(stack)
+	return stack[0]
 
 def selectCards(name, stack, msg_append = ""):
 	while True:

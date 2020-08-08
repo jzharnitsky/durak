@@ -1,10 +1,24 @@
 	***------ List of tasks for Josh -----***
+FOR GAME GENERAL:
+	- during ADDCARDS:
+		- dont prompt to add cards if too many have been played already
+	- during ATTACK:
+		- list num(cards) can be added
 FOR AI
 	- dont prompt if no legal moves
 		- replace with helpful message
 	- list legal moves
 	- Cards in hand
 	- Discard (aka history)
+
+FOR dumbAI:
+	FOR ATTACK():
+		- if player takes after defending certain suit with kozer, remember suit until oponent takes
+			- during attack, if have card of that suit (lower than J) use it instead of lowest card
+		- during EndGame may be useful to attack with high kozers
+	FOR ADDCARDS():
+		- if opponent has lots of 'junk' on the table, add kozer (if kozer < J)
+		- if endGame may be useful to add high Kozers
 
 LONG TERM
 	- make all print messages functions 
