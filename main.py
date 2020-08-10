@@ -16,14 +16,26 @@ logging.basicConfig(filename = "./logs/testLog",level = logging.DEBUG, filemode 
 logger = logging.getLogger()
 
 def main():
-	# create players, deck, discard
-	josh, manny, nua, adam, kozer, deck, discard = initGame()
+	mannyWins = adamWins = 0
+	for i in range(100):
+		# create players, deck, discard
+		josh, manny, nua, adam, kozer, deck, discard = initGame()
 
-	# play a game, returns 'winner'
-	winner = playAGame(josh, adam, kozer, deck)
-	print(colored("Game Over! Winner was " + winner.name))
+		# play a game, returns 'winner'
+		winner = playAGame(manny, adam, kozer, deck)
+		print(colored("Game Over! Winner was " + winner.name))
+		logger.info("\tgame over! Winner was " + winner.name)
+		logger.info("\t after game " + str(i) +" , discard = " + str(prettyShort(discard)))
+		if (winner == manny):
+			mannyWins += 1
+		if (winner == adam):
+			adamWins += 1
 
-def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
+	print(colored("EVERYTHING OVER, SCORES ARE:", 'yellow'))
+	print(colored("\tMANNY (1st attack): " + str(mannyWins), 'yellow'))
+	print(colored("\tADAM (1st defence): " + str(adamWins), 'yellow'))
+
+def playAGame(attacker, defender, kozer, deck, discard=[]):
 	print(colored("welcome! kozer = " + kozer))
 	logger.info(colored(s + "Top of playAGame, kozer=" + kozer + b, 'yellow'))
 	while(True):
@@ -33,6 +45,8 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 			return cw
 
 		# take, changes everyones hands and deck accordingly
+		logger.info("right before take, len(deck) = " + str(len(deck)))
+		logger.info("deck = " + str(prettyShort(deck)))
 		take((attacker, defender), deck)
 		
 		# See if someone won, and return winner
@@ -63,8 +77,8 @@ def playAGame(attacker, defender, kozer, deck, discard=list(), messages=True):
 def initGame():
 	# initialize stuff
 	deck = createDurakDeck()
-	discard = list()
-	hands = list()
+	discard = []
+	hands = []
 	deck.shuffle()
 	#kozer = 'Diamonds' #declared globally 
 
@@ -74,7 +88,7 @@ def initGame():
 
 	# assign a player to each hand
 	josh = Player("josh", hands[0])
-	manny = Player("manny", hands[1])
+	manny = dumbAI("manny", hands[1])
 	nua = Player("nua", hands[2])
 	adam = dumbAI("adam", hands[3])
 
@@ -86,8 +100,8 @@ def take(players, deck, sizeFullHand=6):
 			if (len(deck) > 0):
 				player.take(deck.deal(1))
 			else:
+				logger.info("DECK IS NOW EMPTY (inside take())")
 				print(colored("DECK IS NOW EMPTY"))
-				logger.info("Inside take, DECK IS NOW EMPTY")
 				return
 
 def playARound(attacker, defender, kozer_suit, discard, deck):
@@ -95,9 +109,10 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 
 	# log relevant info
 	logger.info("------- Top of playARound() ----------")
-	logger.info("\tattacker = " + attacker.name)
-	logger.info("\tdefender = " + defender.name)
-	logger.info("\tdiscard = " + prettyShort(discard))
+	logger.info("\tattacker (" + attacker.name + ") Hand: " + str(prettyShort(durakSort(attacker.hand))))
+	logger.info("\tdefender (" + defender.name + ") Hand: " + str(prettyShort(durakSort(defender.hand))))
+	logger.info("len(deck): " + str(len(deck)))
+	logger.info("deck = " + str(prettyShort(deck)))
 
 	# internal variables
 	_buffer = [] 							# covered pairs on table. Will eventually be taken or discarded 
@@ -120,12 +135,9 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 
 	# defender defends until no more cards to defend TODO: (or 6 total)
 	print(colored("\n" + s + defender.name + s + "DEFEND" + s + attacker.name + s, 'cyan'))
-	logger.info("defender (" + defender.name + ") begins defense")
 	while(len(_cardsToDefend) > 0):
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
-		logger.info("card_to_def = " + str(card_to_def))
-		logger.info("card_to_def_with = " + str(card_to_def_with))
 
 		# Check if cards actually beats
 		if (card_to_def == 'take'):
@@ -139,16 +151,13 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 				prettyShort(card_to_def) + "] with the [" + prettyShort(card_to_def_with) + "]" + b, 'green'))
 
 				# remove cards from hand and _cardsToDefend and add to buffer
-				logger.info(colored("Defender succesfully defends!!", 'green'))
 				defender.removeCards(card_to_def_with)
 				_cardsToDefend.remove(card_to_def)
 				_buffer.append(card_to_def)
 				_buffer.append(card_to_def_with)
-				logger.info("_buffer is now: " + prettyShort(_buffer))
-				#logger.info("_buffer is now: " + str([str(x) for x in _buffer])) #TODO: see if this is beter
 
 			# attacker optionally add cards
-			print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(defender.lengthHand()),'yellow'))
+			print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(len(defender.hand)),'yellow'))
 			print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
 			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend, MAXCARDS-cardCount)
 			logger.info("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd))
@@ -251,20 +260,26 @@ class Player:
 	
 	def take(self, junk):
 		for item in list(junk):
+			logger.info("BOUTTA TAKE the " + str(prettyShort(item)) + "hand: " + str(prettyShort(self.hand)))
 			self.hand.append(item)
+			logger.info("JUST TOOK the " + str(prettyShort(item)) + "hand: " + str(prettyShort(self.hand)))
 
 	def addCards(self, cards_played, allowed):
-		legal_attack_cards = []
-		have_legal_cards = False
-		listOfLegalValues = list(set(x.value for x in cards_played))
+		# internal variables
+		legal_attack_cards = [] 	# holds (legal) cards to be added
+		have_legal_cards = False	# does player have cards they can add
+		listOfLegalValues = list(set(x.value for x in cards_played)) # list of legal values for adding
 		print("LEGAL CARDS FOR ADDING:", listOfLegalValues)
+
+		# check if player has atleast one card which can be legally added
 		for card in self.hand:
 			if card.value in listOfLegalValues:
 				have_legal_cards = True
 
+		# return empty if player cant add anything
 		if not have_legal_cards:
 			print(colored("No Cards can be added by attacker, moving on...",'yellow'))
-			logger.info(colored("No cards can be added by attacker, moving on...", 'yellow'))
+			logger.info("No cards can be added by attacker, moving on...")
 			return []
 			
 		while(True): # TODO
@@ -288,7 +303,6 @@ class Player:
 
 		# if cards is a single card
 		if (type(cards) == pd.card.Card):
-			logger.info("inside removeCards, boutta remove: " + str(cards))
 			self.hand.remove(cards)
 		else:
 			for card in cards:
@@ -299,9 +313,6 @@ class Player:
 			symbol = prettyPrintSuit(card.suit)
 			print(colored(symbol,card, symbol))
 
-	def lengthHand(self):
-		return len(self.hand)
-
 	def justTook(self):
 		return self.took 
 
@@ -311,17 +322,13 @@ class Player:
 class dumbAI(Player):
 	def attack(self, num):
 		# attacks with the lowest card
-		atk_card = self.hand[0]
-		logger.info("Inside dumbAI::attack()")
+		atk_card = durakSort(self.hand)[0]
 		self.removeCards(atk_card)
-		logger.info("dumbAI::attack() Boutta return: " + str(atk_card))
-		logger.info("dumbAI(" + self.name + ") hand is now: " + str(self.hand))
 		return [atk_card]
 
 	def addCards(self, cards_played, allowed): #dumbAI
 		length = len(cards_played)
 		MAX = Card(value='Jack', suit='Diamonds')
-		logger.info("Top of dumbAI::addCards")
 		add_cards = []
 		have_legal_cards = False
 		listOfLegalValues = list(set(x.value for x in cards_played))
@@ -333,23 +340,17 @@ class dumbAI(Player):
 				if card.suit != kozer or (length > 3 and card.lt(MAX)):
 					if len(add_cards) < allowed:
 						add_cards.append(card)
-					else:
-						logger.info(colored("Aight thats all the cards that can be added",'yellow'))
 		
-		logger.info("add_cards is now: " + str(add_cards))
 		if (len(add_cards) > 0):
-			logger.info("boutta return add_cards = " + str(add_cards))
 			self.removeCards(add_cards)
-			logger.info("dumbAI(" + self.name + ") hand is now: " + str(self.hand))
+			logger.info("inside dumbAI::addCards (" + self.name + ") hand is now: " + str(prettyShort(self.hand)))
 			return add_cards
 		else:
 			print(colored("No Cards can be added by attacker, moving on...",'yellow'))
 			logger.info(colored("No cards can be added by attacker, moving on...", 'yellow'))
-			logger.info("dumbAI(" + self.name + ") hand is now: " + str(self.hand))
 			return []
 
 	def defend(self, hand): #dumbAI
-		logger.info("Top of dumbAI::defend()")	
 
 		# select card to defend
 		if (len(hand) > 1):
@@ -358,10 +359,9 @@ class dumbAI(Player):
 			card_to_defend = hand[0]
 	
 		# check each card if it beats
-		for card in self.hand:
-			logger.info("checking if " + str(card) + "beats " + str(card_to_defend))
+		for card in durakSort(self.hand):
+			logger.info("checking if " + str(prettyShort(card)) + " beats " + str(prettyShort(card_to_defend)))
 			if checkBeats(card_to_defend, card, kozer):
-				logger.info("It WORKS! Returning: " + str(card))
 				return (card_to_defend, card)
 		print(colored("AI aint got nothing, forced to TAKE", 'red'))
 		logger.info("Oh Bummer, I got nothing. Returning ('take', 'take')")
@@ -382,16 +382,15 @@ def prettyPrintSuit(suit):
 	return l[suit]
 
 def prettyShort(stack):
-	strCat = ""
-	if type(stack) != list:
+	strCat = "["
+	if (type(stack) == pd.card.Card):
 		stack = [stack]
 	for card in stack:
 		strCat += card.value + prettyPrintSuit(card.suit) + " "
-	return str(strCat).rstrip()
+	return str(strCat).rstrip() + "]"
 
 def selectLowestCard(stack):
-	stack = durakSort(stack)
-	return stack[0]
+	return durakSort(stack)[0]
 
 def selectCards(name, stack, msg_append = ""):
 	while True:

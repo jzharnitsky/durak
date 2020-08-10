@@ -2,8 +2,6 @@
 FOR GAME GENERAL:
 	- during ADDCARDS:
 		- dont prompt to add cards if too many have been played already
-	- during ATTACK:
-		- list num(cards) can be added
 FOR AI
 	- dont prompt if no legal moves
 		- replace with helpful message
@@ -24,5 +22,6 @@ LONG TERM
 	- make all print messages functions 
 		- ex: printAtkMsg(attacker.name, defender.name)
 
-hand = [8, ZZ10, 10, Q, A, 8k]
-
+SCORES:
+	- 591, 409
+	
