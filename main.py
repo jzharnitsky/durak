@@ -16,28 +16,31 @@ logging.basicConfig(filename = "./logs/testLog",level = logging.DEBUG, filemode 
 logger = logging.getLogger()
 
 def main():
-	mannyWins = adamWins = 0
-	for i in range(100):
+	joshWins = nuaWins = 0
+	logger.info("Hello hello, top of main()")
+	for i in range(1):
 		# create players, deck, discard
-		josh, manny, nua, adam, kozer, deck, discard = initGame()
+		logger.info("BOUTTA INIT GAME")
+		josh, nua, kozer, deck, discard = initGame()
 
 		# play a game, returns 'winner'
-		winner = playAGame(manny, adam, kozer, deck)
+		winner = playAGame(josh, nua, kozer, deck, discard)
 		print(colored("Game Over! Winner was " + winner.name))
-		logger.info("\tgame over! Winner was " + winner.name)
+		logger.info("\ngame over! Winner was " + winner.name + "\n")
 		logger.info("\t after game " + str(i) +" , discard = " + str(prettyShort(discard)))
-		if (winner == manny):
-			mannyWins += 1
-		if (winner == adam):
-			adamWins += 1
+		if (winner == josh):
+			joshWins += 1
+		if (winner == nua):
+			nuaWins += 1
 
 	print(colored("EVERYTHING OVER, SCORES ARE:", 'yellow'))
-	print(colored("\tMANNY (1st attack): " + str(mannyWins), 'yellow'))
-	print(colored("\tADAM (1st defence): " + str(adamWins), 'yellow'))
+	print(colored("\tJOSH (1st attack): " + str(joshWins), 'yellow'))
+	print(colored("\tNUA (1st defence): " + str(nuaWins), 'yellow'))
 
 def playAGame(attacker, defender, kozer, deck, discard=[]):
 	print(colored("welcome! kozer = " + kozer))
-	logger.info(colored(s + "Top of playAGame, kozer=" + kozer + b, 'yellow'))
+	logger.info("\n" + s + "Top of playAGame, kozer=" + kozer + b + "\n", 'yellow')
+	logger.info("discard = " + str(prettyShort(discard)))
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly. returns winner if there is one
 		cw = playARound(attacker, defender, kozer, discard, deck)
@@ -77,22 +80,23 @@ def playAGame(attacker, defender, kozer, deck, discard=[]):
 def initGame():
 	# initialize stuff
 	deck = createDurakDeck()
+	logger.info("inside initGame, len(deck) = " + str(len(deck)))
 	discard = []
 	hands = []
 	deck.shuffle()
 	#kozer = 'Diamonds' #declared globally 
 
-	# deal 4 hands
-	for i in range(4):
-	    hands.append(deck.deal(6))
+	# deal 2 hands
+	for i in range(2):
+	    hands.append(list(deck.deal(6)))
 
+	logger.info("inside initGame (AFTER DEAL), len(deck) = " + str(len(deck)))
 	# assign a player to each hand
-	josh = Player("josh", hands[0])
-	manny = dumbAI("manny", hands[1])
-	nua = Player("nua", hands[2])
-	adam = dumbAI("adam", hands[3])
+	josh = dumbAI("josh", hands[0])
+	nua = dumbAI("nua", hands[1])
 
-	return josh, manny, nua, adam, kozer, deck, discard
+	logger.info("inside initGame RIGHT BEFORE RETURN, len(deck) = " + str(len(deck)))
+	return josh, nua, kozer, deck, discard
 
 def take(players, deck, sizeFullHand=6):
 	for player in players:
@@ -108,11 +112,7 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 	''' This function is hella long. This is where most of the magic happens'''
 
 	# log relevant info
-	logger.info("------- Top of playARound() ----------")
-	logger.info("\tattacker (" + attacker.name + ") Hand: " + str(prettyShort(durakSort(attacker.hand))))
-	logger.info("\tdefender (" + defender.name + ") Hand: " + str(prettyShort(durakSort(defender.hand))))
-	logger.info("len(deck): " + str(len(deck)))
-	logger.info("deck = " + str(prettyShort(deck)))
+	log_relevant_round_info(attacker, defender, deck)
 
 	# internal variables
 	_buffer = [] 							# covered pairs on table. Will eventually be taken or discarded 
@@ -145,10 +145,7 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 		if (defender.justTook()) or checkBeats(card_to_def, card_to_def_with, kozer_suit):
 			if not (defender.justTook()): # if checkBeats() but dont run checkBeats twice
 				# print success message
-				print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
-				 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
-				logger.info(colored(s + defender.name + " succesfully defends the [" + \
-				prettyShort(card_to_def) + "] with the [" + prettyShort(card_to_def_with) + "]" + b, 'green'))
+				print_and_log_success_message(defender, card_to_def, card_to_def_with)
 
 				# remove cards from hand and _cardsToDefend and add to buffer
 				defender.removeCards(card_to_def_with)
@@ -159,7 +156,7 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 			# attacker optionally add cards
 			print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(len(defender.hand)),'yellow'))
 			print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
-			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend, MAXCARDS-cardCount)
+			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend, MAXCARDS-cardCount, len(_buffer))
 			logger.info("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd))
 			print(colored("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd) ,'yellow'))
 			# See if someone won, and return winner
@@ -177,8 +174,8 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 				return 
 					
 		else: # else for 'if (checkBeats):'
-			logger.info(colored(x + "Defenders' selection is invalid, " + "["  + \
-			prettyShort(card_to_def_with) + "] doesn't beat the [" + prettyShort(card_to_def) + "] " + x, 'red'))
+			logger.info(x + "Defenders' selection is invalid, " + "["  + \
+			prettyShort(card_to_def_with) + "] doesn't beat the [" + prettyShort(card_to_def) + "] " + x, 'red')
 			print(colored(x + "FOOL YOU CANT BEAT THE [" + str(card_to_def) + "] WITH THE " \
 				+ "[" + str(card_to_def_with) + "]" + x,'red'))
 
@@ -260,11 +257,11 @@ class Player:
 	
 	def take(self, junk):
 		for item in list(junk):
-			logger.info("BOUTTA TAKE the " + str(prettyShort(item)) + "hand: " + str(prettyShort(self.hand)))
+			logger.info(self.name+"BOUTTA TAKE the "+str(prettyShort(item)) + "hand: " + str(prettyShort(self.hand)))
 			self.hand.append(item)
-			logger.info("JUST TOOK the " + str(prettyShort(item)) + "hand: " + str(prettyShort(self.hand)))
+			logger.info(self.name+"JUST TOOK the " + str(prettyShort(item)) + "hand: " + str(prettyShort(self.hand)))
 
-	def addCards(self, cards_played, allowed):
+	def addCards(self, cards_played, allowed, numCardsInBuffer):
 		# internal variables
 		legal_attack_cards = [] 	# holds (legal) cards to be added
 		have_legal_cards = False	# does player have cards they can add
@@ -326,8 +323,8 @@ class dumbAI(Player):
 		self.removeCards(atk_card)
 		return [atk_card]
 
-	def addCards(self, cards_played, allowed): #dumbAI
-		length = len(cards_played)
+	def addCards(self, cards_played, allowed, numCardsInBuffer): #dumbAI
+		length = numCardsInBuffer/2
 		MAX = Card(value='Jack', suit='Diamonds')
 		add_cards = []
 		have_legal_cards = False
@@ -337,7 +334,7 @@ class dumbAI(Player):
 		
 		for card in self.hand:
 			if card.value in listOfLegalValues:
-				if card.suit != kozer or (length > 3 and card.lt(MAX)):
+				if card.suit != kozer or (length > 2 and card.lt(MAX)):
 					if len(add_cards) < allowed:
 						add_cards.append(card)
 		
@@ -347,7 +344,7 @@ class dumbAI(Player):
 			return add_cards
 		else:
 			print(colored("No Cards can be added by attacker, moving on...",'yellow'))
-			logger.info(colored("No cards can be added by attacker, moving on...", 'yellow'))
+			logger.info("No cards can be added by attacker, moving on...")
 			return []
 
 	def defend(self, hand): #dumbAI
@@ -369,11 +366,11 @@ class dumbAI(Player):
 
 def checkWinner(attacker, defender, deckLength):
 	if ((deckLength == 0) and (len(attacker.hand) == 0)):
-		logger.info(colored("GAME OVER, winner was: " + attacker.name,'yellow'))
+		logger.info("GAME OVER, winner was: " + attacker.name)
 		return attacker
 
 	if ((deckLength == 0) and (len(defender.hand) == 0)):
-		logger.info(colored("GAME OVER, winner was: " + defender.name,'yellow'))
+		logger.info("GAME OVER, winner was: " + defender.name)
 		return defender
 	return None
 
@@ -469,6 +466,18 @@ def createDurakDeck():
 	deck_.empty()
 	deck_.add([Card(value='6', suit='Diamonds'), Card(value='6', suit='Clubs'), Card(value='6', suit='Hearts'), Card(value='6', suit='Spades'), Card(value='7', suit='Diamonds'), Card(value='7', suit='Clubs'), Card(value='7', suit='Hearts'), Card(value='7', suit='Spades'), Card(value='8', suit='Diamonds'), Card(value='8', suit='Clubs'), Card(value='8', suit='Hearts'), Card(value='8', suit='Spades'), Card(value='9', suit='Diamonds'), Card(value='9', suit='Clubs'), Card(value='9', suit='Hearts'), Card(value='9', suit='Spades'), Card(value='10', suit='Diamonds'), Card(value='10', suit='Clubs'), Card(value='10', suit='Hearts'), Card(value='10', suit='Spades'), Card(value='Jack', suit='Diamonds'), Card(value='Jack', suit='Clubs'), Card(value='Jack', suit='Hearts'), Card(value='Jack', suit='Spades'), Card(value='Queen', suit='Diamonds'), Card(value='Queen', suit='Clubs'), Card(value='Queen', suit='Hearts'), Card(value='Queen', suit='Spades'), Card(value='King', suit='Diamonds'), Card(value='King', suit='Clubs'), Card(value='King', suit='Hearts'), Card(value='King', suit='Spades'), Card(value='Ace', suit='Diamonds'), Card(value='Ace', suit='Clubs'), Card(value='Ace', suit='Hearts'), Card(value='Ace', suit='Spades')])
 	return deck_
+def print_and_log_success_message(defender, card_to_def, card_to_def_with):
+	print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
+	 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
+	logger.info(s + defender.name + " succesfully defends the [" + \
+	prettyShort(card_to_def) + "] with the [" + prettyShort(card_to_def_with) + "]" + b)
+
+def log_relevant_round_info(attacker, defender, deck):
+	logger.info("------- Top of playARound() ----------")
+	logger.info("\tattacker (" + attacker.name + ") Hand: " + str(prettyShort(durakSort(attacker.hand))))
+	logger.info("\tdefender (" + defender.name + ") Hand: " + str(prettyShort(durakSort(defender.hand))))
+	logger.info("len(deck): " + str(len(deck)))
+	logger.info("deck = " + str(prettyShort(deck)))
 
 if __name__ == "__main__":
 	main()

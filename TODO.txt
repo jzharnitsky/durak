@@ -1,7 +1,5 @@
 	***------ List of tasks for Josh -----***
 FOR GAME GENERAL:
-	- during ADDCARDS:
-		- dont prompt to add cards if too many have been played already
 FOR AI
 	- dont prompt if no legal moves
 		- replace with helpful message
@@ -22,6 +20,16 @@ LONG TERM
 	- make all print messages functions 
 		- ex: printAtkMsg(attacker.name, defender.name)
 
-SCORES:
-	- 591, 409
-	
+5123/4877
+
+GENETIC ALGORITHM
+	1. (Start) Generate random population of n players
+	2. (Fitness) Evaluate the fitness f(x) of each player in the population
+	3. (New Population) Create a new population by repeating the following steps:
+		a. (Selection) Select 2 parent players (better fitness->better chance to be selected)
+		b. (Crossover) With a crossover probability cross over the parents to form a new offspring. 
+			i. if no crossover offspring is an exact copy of parents
+		c. (Mutation) With a mutation probability mutate new offspring at each parameter
+		d. (Accepting) Place new offspring in a new population
+	4. (Replace) Use new generated population for a further run of algorithm
+	5. (Loop) go to step 2
