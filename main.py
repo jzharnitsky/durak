@@ -18,13 +18,13 @@ logger = logging.getLogger()
 def main():
 	joshWins = nuaWins = mannyWins = adamWins = 0
 	logger.info("Hello hello, top of main()")
-	for i in range(1):
+	for i in range(10):
 		# create players, deck, discard
 		logger.info("BOUTTA INIT GAME")
 		josh, adam, manny, nua, kozer, deck, discard = initGame()
 
 		# play a game, returns 'winner'
-		winner = playAGame(josh, nua, manny, adam, kozer, deck, discard)
+		winner = playAGame([josh, nua, manny, adam], kozer, deck, discard)
 		print(colored("Game Over! Winner was " + winner.name))
 		logger.info("\ngame over! Winner was " + winner.name + "\n")
 		logger.info("\t after game " + str(i) +" , discard = " + str(prettyShort(discard)))
@@ -33,59 +33,43 @@ def main():
 		if (winner == nua):
 			nuaWins += 1
 		if (winner == manny):
-			joshWins += 1
+			mannyWins += 1
 		if (winner == adam):
-			nuaWins += 1
+			adamWins += 1
 
 	print(colored("EVERYTHING OVER, SCORES ARE:", 'yellow'))
 	print(colored("\tJOSH (1st attack): " + str(joshWins), 'yellow'))
 	print(colored("\tNUA (1st defence): " + str(nuaWins), 'yellow'))
-	print(colored("\tMANNY (1st attack): " + str(joshWins), 'yellow'))
-	print(colored("\tADAM (1st defence): " + str(nuaWins), 'yellow'))
+	print(colored("\tMANNY (1st attack): " + str(mannyWins), 'yellow'))
+	print(colored("\tADAM (1st defence): " + str(adamWins), 'yellow'))
 
-def playAGame(attacker, defender, player3, player4, kozer, deck, discard=[]):
-	players = [[attacker, 1], [defender, 2], [player3, 3], [player4, 4]]
-
-	print(colored("welcome! kozer = " + kozer))
-	logger.info("\n" + s + "Top of playAGame, kozer=" + kozer + b + "\n", 'yellow')
-	logger.info("discard = " + str(prettyShort(discard)))
+def playAGame(players, kozer, deck, discard=[]):
+	logger.info("\n" + s + "Top of playAGame, kozer=" + kozer + b + "\n")
 	while(True):
-		# plays a round, changes everyones hand + discard accordingly. returns winner if there is one
-		roundInfo = playARound(players[0], players[1], players[2], player4, kozer, discard, deck)
+		# plays a round, changes hands/deck/discard accordingly. Returns [winner or None, actualDefender]
+		roundInfo = playARound(players, kozer, discard, deck)
 		if roundInfo[0] != None:
 			return roundInfo[0]
 
 		actualDefender = roundInfo[1]
-
-		# round returns state
-		# roundInfo = [winner, defender]
-		# roundInfo = [None, defender]
-		if actualDefender.justTook():
-			attacker = players[players[actualDefender] + 1]
-			
-
-		# take, changes everyones hands and deck accordingly
-		logger.info("right before take, len(deck) = " + str(len(deck)))
-		logger.info("deck = " + str(prettyShort(deck)))
-		take((attacker, defender, player3, player4), deck)
+	
+		# takes starting with attacker, defender takes last
+		logger.info("right before take, len(deck) = " + str(len(deck)) + "\ndeck = " + str(prettyShort(deck)))
+		for player in players:
+			if player != actualDefender:
+				take([player], deck)
+		take([actualDefender], deck)
+		
+		# switch order of players
+		players = returnPlayersInOrder(players, actualDefender)
 		
 		# See if someone won, and return winner
-		cw = checkWinner([attacker, defender, player3, player4], len(deck))
+		cw = checkWinner(players, len(deck)) #TODO: make this obsolete
 		if cw != None:
 			return cw
 
 		# some messages
-		message_1(attacker, defender, deck, discard)
-
-		# switch places
-		if not (defender.justTook()):
-			temp = attacker
-			attacker = defender
-			defender = temp
-		else:
-			print(colored("~~~~~~ Defender took, so attacker attacks again ~~~~~~"))
-			logger.info("~~~ Defender took, so attacker ("+attacker.name+") attacks ~~~")
-			defender.set_justTook(False)
+		message_1(players, deck, discard)
 
 def initGame():
 	# initialize stuff
@@ -96,19 +80,19 @@ def initGame():
 	deck.shuffle()
 	#kozer = 'Diamonds' #declared globally 
 
-	# deal 2 hands
+	# deal 4 hands
 	for i in range(4):
 	    hands.append(list(deck.deal(6)))
 
 	logger.info("inside initGame (AFTER DEAL), len(deck) = " + str(len(deck)))
 	# assign a player to each hand
-	josh = dumbAI("josh", hands[0])
-	nua = dumbAI("nua", hands[1])
-	manny = dumbAI("manny", hands[2])
-	manny = dumbAI("adam", hands[3])
+	josh = dumbAI("josh", hands[0], 0)
+	nua = dumbAI("nua", hands[1], 1)
+	manny = dumbAI("manny", hands[2], 2)
+	adam = dumbAI("adam", hands[3], 3)
 
 	logger.info("inside initGame RIGHT BEFORE RETURN, len(deck) = " + str(len(deck)))
-	return josh, nua, kozer, deck, discard
+	return josh, nua, manny, adam, kozer, deck, discard
 
 def take(players, deck, sizeFullHand=6):
 	for player in players:
@@ -120,11 +104,13 @@ def take(players, deck, sizeFullHand=6):
 				print(colored("DECK IS NOW EMPTY"))
 				return
 
-def playARound(attacker, defender, kozer_suit, discard, deck):
+def playARound(players, kozer_suit, discard, deck):
 	''' This function is hella long. This is where most of the magic happens'''
+	attacker, defender, player3, player4 = players
+	attacking_players = [attacker, player3, player4]
 
 	# log relevant info
-	log_relevant_round_info(attacker, defender, deck)
+	log_relevant_round_info(players, deck)
 
 	# internal variables
 	_buffer = [] 							# covered pairs on table. Will eventually be taken or discarded 
@@ -132,20 +118,21 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 	MAXCARDS = min(6, len(defender.hand)) 	# max cards that can be played
 
 	# attacker attacks with any card (or multiple of same value)
-	print(colored("\n" + s + attacker.name + s + "ATTACK" + s + defender.name + s, 'yellow'))
-	print(colored(str(MAXCARDS) + "cards can be played",'yellow'))
-	print(colored(attacker.name + "- select card to attack with:"))
+	print_attacker_messages(attacker, defender, MAXCARDS)
 	_cardsToDefend = attacker.attack(MAXCARDS)
-	# See if attacker just got rid of all cards and won
-	cw = checkWinner(attacker, defender, len(deck))
-	if cw != None:
-		return cw
-	
-	logger.info("attacker (" + attacker.name + ") attacks with: " + prettyShort(_cardsToDefend))
-	cardCount += len(_cardsToDefend)
-	logger.info("cardCount = " + str(cardCount))
 
-	# defender defends until no more cards to defend TODO: (or 6 total)
+	# if attacker just got rid of all cards (and won
+	cw = checkWinner(players, len(deck))
+	if cw != None:
+		return [cw, None]
+	
+	cardCount += len(_cardsToDefend)
+	
+	logger.info(attacker.name+" attacks with: "+prettyShort(_cardsToDefend)+"\n\tcardCount = " + str(cardCount))
+
+	# TODO: player3 and player4.addCards()
+
+	# defender defends until no more cards to defend (or 6 total)
 	print(colored("\n" + s + defender.name + s + "DEFEND" + s + attacker.name + s, 'cyan'))
 	while(len(_cardsToDefend) > 0):
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
@@ -166,24 +153,22 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 				_buffer.append(card_to_def_with)
 
 			# attacker optionally add cards
-			print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(len(defender.hand)),'yellow'))
-			print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
-			cardsToAdd = attacker.addCards(_buffer + _cardsToDefend, MAXCARDS-cardCount, len(_buffer))
-			logger.info("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd))
-			print(colored("attacker (" + attacker.name + ") adds: " + prettyShort(cardsToAdd) ,'yellow'))
-			# See if someone won, and return winner
-			cw = checkWinner(attacker, defender, len(deck))
+			cardsToAdd = round_addCards(attacking_players, defender, MAXCARDS, cardCount, _buffer, _cardsToDefend)
+
+			# See if someone won (from adding cards), and return winner
+			cw = checkWinner(players, len(deck))
 			if cw != None:
-				return cw
+				return [cw, None]
+
 			for card in cardsToAdd:
 				_cardsToDefend.append(card)
 
-			# check if defender took
+			# check if defender took now (since players can add cards after defender takes)
 			if (defender.justTook()):
 				defender.take(_buffer)
 				defender.take(_cardsToDefend)
-				_cardsToDefend = [] #Is this line necessary?
-				return 
+				_cardsToDefend = [] # TODO: Is this line necessary?
+				return [None, defender]
 					
 		else: # else for 'if (checkBeats):'
 			logger.info(x + "Defenders' selection is invalid, " + "["  + \
@@ -194,12 +179,14 @@ def playARound(attacker, defender, kozer_suit, discard, deck):
 	# _cardsToDefend is empty; discard cards
 	for card in _buffer:
 		discard.append(card)
+	return [None, defender]
 
 class Player:
-	def __init__(self, name, hand, took=False):
+	def __init__(self, name, hand, idNumber, took=False):
 		self.name = name
 		self.hand = hand
 		self.took = took # flag for if player just took
+		self.id = idNumber
 
 	def attack(self, num): #num = num(cards) allowed to be played
 		# attack with any card
@@ -287,8 +274,8 @@ class Player:
 
 		# return empty if player cant add anything
 		if not have_legal_cards:
-			print(colored("No Cards can be added by attacker, moving on...",'yellow'))
-			logger.info("No cards can be added by attacker, moving on...")
+			print(colored("No Cards can be added by " + self.name + ", moving on...",'yellow'))
+			logger.info("No cards can be added by " + self.name + ", moving on...")
 			return []
 			
 		while(True): # TODO
@@ -355,8 +342,8 @@ class dumbAI(Player):
 			logger.info("inside dumbAI::addCards (" + self.name + ") hand is now: " + str(prettyShort(self.hand)))
 			return add_cards
 		else:
-			print(colored("No Cards can be added by attacker, moving on...",'yellow'))
-			logger.info("No cards can be added by attacker, moving on...")
+			print(colored("No Cards can be added by " + self.name + ", moving on...",'yellow'))
+			logger.info("No cards can be added by " + self.name + ", moving on...")
 			return []
 
 	def defend(self, hand): #dumbAI
@@ -369,21 +356,19 @@ class dumbAI(Player):
 	
 		# check each card if it beats
 		for card in durakSort(self.hand):
-			logger.info("checking if " + str(prettyShort(card)) + " beats " + str(prettyShort(card_to_defend)))
+			logger.info(self.name + " checking if " + str(prettyShort(card)) \
+				+ " beats " + str(prettyShort(card_to_defend)))
 			if checkBeats(card_to_defend, card, kozer):
 				return (card_to_defend, card)
 		print(colored("AI aint got nothing, forced to TAKE", 'red'))
 		logger.info("Oh Bummer, I got nothing. Returning ('take', 'take')")
 		return ('take', 'take')
 
-def checkWinner(attacker, defender, deckLength):
-	if ((deckLength == 0) and (len(attacker.hand) == 0)):
-		logger.info("GAME OVER, winner was: " + attacker.name)
-		return attacker
-
-	if ((deckLength == 0) and (len(defender.hand) == 0)):
-		logger.info("GAME OVER, winner was: " + defender.name)
-		return defender
+def checkWinner(players, deckLength):
+	for player in players:
+		if ((deckLength == 0) and (len(player.hand) == 0)):
+			logger.info("GAME OVER, winner was: " + player.name)
+			return player
 	return None
 
 def prettyPrintSuit(suit):
@@ -404,12 +389,6 @@ def selectLowestCard(stack):
 def selectCards(name, stack, msg_append = ""):
 	while True:
 		returnList = [] 
-
-		# if one item in list return item
-	#	if (type(stack) == pd.card.Card):
-#			return [stack]
-#		if (len(stack) == 1):
-#			return stack
 
 		# Create list_valid_entries
 		list_valid_strings = ['done', 'take']	
@@ -450,6 +429,16 @@ def checkBeats(atkCard, defCard, kozer):
 	else:
 		return (defCard.suit == kozer) and (defCard.gt(atkCard) or atkCard.suit != kozer)
 
+def returnPlayersInOrder(players, defender):
+	numPlayers = len(players)
+	for i in range(numPlayers):
+		if players[i] == defender:
+			if defender.justTook:
+				nextPlayer = (i + 1) % numPlayers
+				return players[nextPlayer:] + players[:nextPlayer]
+			else:
+				return players[i:] + players[i:]
+
 def durakSort(arr): # uses quicksort
 	# sort kozers and nonKozers seperately
 	kozers = []
@@ -473,33 +462,56 @@ def quickSort(arr):
 			[arr[0]] + \
 			quickSort([x for x in arr[1:] if x.gt(arr[0])])
 
+#TODO: make this function more efficient by not passing all these inputs
+def round_addCards(attacking_players, defender, MAXCARDS, cardCount, _buffer, _cardsToDefend):
+	cardsToAdd = []
+	cardsJustAdded = []
+	print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(len(defender.hand)),'yellow'))
+	print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
+	
+	for player in attacking_players:
+		cardsToAdd = player.addCards(_buffer + _cardsToDefend + cardsJustAdded, MAXCARDS-cardCount, len(_buffer))
+		cardCount += len(cardsToAdd)
+		cardsJustAdded += cardsToAdd
+		logger.info(player.name + " adds: " + prettyShort(cardsToAdd))	
+		logger.info("(inside round_addCards) Num cards that can be added is now: "+str(MAXCARDS-cardCount))
+		print(colored("(" + player.name + ") adds: " + prettyShort(cardsToAdd) ,'yellow'))
+
+	return cardsToAdd
+
 def createDurakDeck():
 	deck_ = pd.Deck()
 	deck_.empty()
 	deck_.add([Card(value='6', suit='Diamonds'), Card(value='6', suit='Clubs'), Card(value='6', suit='Hearts'), Card(value='6', suit='Spades'), Card(value='7', suit='Diamonds'), Card(value='7', suit='Clubs'), Card(value='7', suit='Hearts'), Card(value='7', suit='Spades'), Card(value='8', suit='Diamonds'), Card(value='8', suit='Clubs'), Card(value='8', suit='Hearts'), Card(value='8', suit='Spades'), Card(value='9', suit='Diamonds'), Card(value='9', suit='Clubs'), Card(value='9', suit='Hearts'), Card(value='9', suit='Spades'), Card(value='10', suit='Diamonds'), Card(value='10', suit='Clubs'), Card(value='10', suit='Hearts'), Card(value='10', suit='Spades'), Card(value='Jack', suit='Diamonds'), Card(value='Jack', suit='Clubs'), Card(value='Jack', suit='Hearts'), Card(value='Jack', suit='Spades'), Card(value='Queen', suit='Diamonds'), Card(value='Queen', suit='Clubs'), Card(value='Queen', suit='Hearts'), Card(value='Queen', suit='Spades'), Card(value='King', suit='Diamonds'), Card(value='King', suit='Clubs'), Card(value='King', suit='Hearts'), Card(value='King', suit='Spades'), Card(value='Ace', suit='Diamonds'), Card(value='Ace', suit='Clubs'), Card(value='Ace', suit='Hearts'), Card(value='Ace', suit='Spades')])
 	return deck_
+
 def print_and_log_success_message(defender, card_to_def, card_to_def_with):
 	print(colored(s + defender.name + " succesfully defends the [" + str(card_to_def) \
 	 + "] with the [" + str(card_to_def_with) + "]" + b, 'green'))
 	logger.info(s + defender.name + " succesfully defends the [" + \
 	prettyShort(card_to_def) + "] with the [" + prettyShort(card_to_def_with) + "]" + b)
 
-def log_relevant_round_info(attacker, defender, deck):
+def log_relevant_round_info(players, deck):
 	logger.info("------- Top of playARound() ----------")
-	logger.info("\tattacker (" + attacker.name + ") Hand: " + str(prettyShort(durakSort(attacker.hand))))
-	logger.info("\tdefender (" + defender.name + ") Hand: " + str(prettyShort(durakSort(defender.hand))))
+	for player in players:
+		logger.info("\t(" + player.name + ") Hand: " + str(prettyShort(durakSort(player.hand))))
 	logger.info("len(deck): " + str(len(deck)))
 	logger.info("deck = " + str(prettyShort(deck)))
 
-def message_1(attacker, defender, deck, discard):
+def message_1(players, deck, discard):
 	print(colored("------ After Round -------- (msg_1)"))
 	print(colored("\nlen(deck) is now: " + str(len(deck))))
 	print(colored("discard = " + prettyShort(discard))) #TODO: make method shortPrettyPrint() or something 
 	logger.info("\n\n------ After Round --------\n")
-	logger.info(attacker.name + " hand is now: " + attacker.prettyHand(True))
-	logger.info(defender.name + " hand is now: " + defender.prettyHand(True))
+	for player in players:
+		logger.info(player.name + " hand is now: " + player.prettyHand(True))
 	logger.info("\nlen(deck) is now: " + str(len(deck)))
 	logger.info("discard = " + prettyShort(discard)) 
+
+def print_attacker_messages(attacker, defender, MAXCARDS):
+	print(colored("\n" + s + attacker.name + s + "ATTACK" + s + defender.name + s, 'yellow'))
+	print(colored(str(MAXCARDS) + "cards can be played",'yellow'))
+	print(colored(attacker.name + "- select card to attack with:"))
 
 if __name__ == "__main__":
 	main()
