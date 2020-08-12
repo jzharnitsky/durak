@@ -16,15 +16,15 @@ logging.basicConfig(filename = "./logs/testLog",level = logging.DEBUG, filemode 
 logger = logging.getLogger()
 
 def main():
-	joshWins = nuaWins = 0
+	joshWins = nuaWins = mannyWins = adamWins = 0
 	logger.info("Hello hello, top of main()")
 	for i in range(1):
 		# create players, deck, discard
 		logger.info("BOUTTA INIT GAME")
-		josh, nua, kozer, deck, discard = initGame()
+		josh, adam, manny, nua, kozer, deck, discard = initGame()
 
 		# play a game, returns 'winner'
-		winner = playAGame(josh, nua, kozer, deck, discard)
+		winner = playAGame(josh, nua, manny, adam, kozer, deck, discard)
 		print(colored("Game Over! Winner was " + winner.name))
 		logger.info("\ngame over! Winner was " + winner.name + "\n")
 		logger.info("\t after game " + str(i) +" , discard = " + str(prettyShort(discard)))
@@ -32,40 +32,50 @@ def main():
 			joshWins += 1
 		if (winner == nua):
 			nuaWins += 1
+		if (winner == manny):
+			joshWins += 1
+		if (winner == adam):
+			nuaWins += 1
 
 	print(colored("EVERYTHING OVER, SCORES ARE:", 'yellow'))
 	print(colored("\tJOSH (1st attack): " + str(joshWins), 'yellow'))
 	print(colored("\tNUA (1st defence): " + str(nuaWins), 'yellow'))
+	print(colored("\tMANNY (1st attack): " + str(joshWins), 'yellow'))
+	print(colored("\tADAM (1st defence): " + str(nuaWins), 'yellow'))
 
-def playAGame(attacker, defender, kozer, deck, discard=[]):
+def playAGame(attacker, defender, player3, player4, kozer, deck, discard=[]):
+	players = [[attacker, 1], [defender, 2], [player3, 3], [player4, 4]]
+
 	print(colored("welcome! kozer = " + kozer))
 	logger.info("\n" + s + "Top of playAGame, kozer=" + kozer + b + "\n", 'yellow')
 	logger.info("discard = " + str(prettyShort(discard)))
 	while(True):
 		# plays a round, changes everyones hand + discard accordingly. returns winner if there is one
-		cw = playARound(attacker, defender, kozer, discard, deck)
-		if cw != None:
-			return cw
+		roundInfo = playARound(players[0], players[1], players[2], player4, kozer, discard, deck)
+		if roundInfo[0] != None:
+			return roundInfo[0]
+
+		actualDefender = roundInfo[1]
+
+		# round returns state
+		# roundInfo = [winner, defender]
+		# roundInfo = [None, defender]
+		if actualDefender.justTook():
+			attacker = players[players[actualDefender] + 1]
+			
 
 		# take, changes everyones hands and deck accordingly
 		logger.info("right before take, len(deck) = " + str(len(deck)))
 		logger.info("deck = " + str(prettyShort(deck)))
-		take((attacker, defender), deck)
+		take((attacker, defender, player3, player4), deck)
 		
 		# See if someone won, and return winner
-		cw = checkWinner(attacker, defender, len(deck))
+		cw = checkWinner([attacker, defender, player3, player4], len(deck))
 		if cw != None:
 			return cw
 
 		# some messages
-		print(colored("------ After Round --------"))
-		print(colored("\nlen(deck) is now: " + str(len(deck))))
-		print(colored("discard = " + prettyShort(discard))) #TODO: make method shortPrettyPrint() or something 
-		logger.info("\n\n------ After Round --------\n")
-		logger.info(attacker.name + " hand is now: " + attacker.prettyHand(True))
-		logger.info(defender.name + " hand is now: " + defender.prettyHand(True))
-		logger.info("\nlen(deck) is now: " + str(len(deck)))
-		logger.info("discard = " + prettyShort(discard)) 
+		message_1(attacker, defender, deck, discard)
 
 		# switch places
 		if not (defender.justTook()):
@@ -87,13 +97,15 @@ def initGame():
 	#kozer = 'Diamonds' #declared globally 
 
 	# deal 2 hands
-	for i in range(2):
+	for i in range(4):
 	    hands.append(list(deck.deal(6)))
 
 	logger.info("inside initGame (AFTER DEAL), len(deck) = " + str(len(deck)))
 	# assign a player to each hand
 	josh = dumbAI("josh", hands[0])
 	nua = dumbAI("nua", hands[1])
+	manny = dumbAI("manny", hands[2])
+	manny = dumbAI("adam", hands[3])
 
 	logger.info("inside initGame RIGHT BEFORE RETURN, len(deck) = " + str(len(deck)))
 	return josh, nua, kozer, deck, discard
@@ -478,6 +490,16 @@ def log_relevant_round_info(attacker, defender, deck):
 	logger.info("\tdefender (" + defender.name + ") Hand: " + str(prettyShort(durakSort(defender.hand))))
 	logger.info("len(deck): " + str(len(deck)))
 	logger.info("deck = " + str(prettyShort(deck)))
+
+def message_1(attacker, defender, deck, discard):
+	print(colored("------ After Round -------- (msg_1)"))
+	print(colored("\nlen(deck) is now: " + str(len(deck))))
+	print(colored("discard = " + prettyShort(discard))) #TODO: make method shortPrettyPrint() or something 
+	logger.info("\n\n------ After Round --------\n")
+	logger.info(attacker.name + " hand is now: " + attacker.prettyHand(True))
+	logger.info(defender.name + " hand is now: " + defender.prettyHand(True))
+	logger.info("\nlen(deck) is now: " + str(len(deck)))
+	logger.info("discard = " + prettyShort(discard)) 
 
 if __name__ == "__main__":
 	main()

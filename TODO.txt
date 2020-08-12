@@ -1,5 +1,7 @@
 	***------ List of tasks for Josh -----***
 FOR GAME GENERAL:
+	TODO BROKEN GAME BROKEN GAME Z!!!!!!!!!!!!!!!!!!!!!!!!!!
+		figure out 4 players transfers and rotations
 FOR AI
 	- dont prompt if no legal moves
 		- replace with helpful message
