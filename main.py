@@ -64,9 +64,9 @@ def playAGame(players, kozer, deck, discard=[]):
 		players = returnPlayersInOrder(players, actualDefender)
 		
 		# See if someone won, and return winner
-		cw = checkWinner(players, len(deck)) #TODO: make this obsolete
-		if cw != None:
-			return cw
+#		cw = checkWinner(players, len(deck)) #TODO: make this obsolete
+#		if cw != None:
+#			return cw
 
 		# some messages
 		message_1(players, deck, discard)
@@ -114,6 +114,7 @@ def playARound(players, kozer_suit, discard, deck):
 
 	# internal variables
 	_buffer = [] 							# covered pairs on table. Will eventually be taken or discarded 
+	logger.info("Hey its me playARound, setting cardCount = 0")
 	cardCount = 0 							# how many cards have been played
 	MAXCARDS = min(6, len(defender.hand)) 	# max cards that can be played
 
@@ -126,6 +127,7 @@ def playARound(players, kozer_suit, discard, deck):
 	if cw != None:
 		return [cw, None]
 	
+	logger.info("inside playARound, boutta increment cardCount" + str(cardCount)+" by len(_cardsToDefend):"+str(len(_cardsToDefend)))
 	cardCount += len(_cardsToDefend)
 	
 	logger.info(attacker.name+" attacks with: "+prettyShort(_cardsToDefend)+"\n\tcardCount = " + str(cardCount))
@@ -135,6 +137,7 @@ def playARound(players, kozer_suit, discard, deck):
 	# defender defends until no more cards to defend (or 6 total)
 	print(colored("\n" + s + defender.name + s + "DEFEND" + s + attacker.name + s, 'cyan'))
 	while(len(_cardsToDefend) > 0):
+		logger.info("At the tippity top of the loop insinde playARound, cardCount = "+str(cardCount))
 		# defender selects 'take', or card_to_defend and card_to_defend_with 
 		card_to_def, card_to_def_with = defender.defend(_cardsToDefend)
 
@@ -152,8 +155,11 @@ def playARound(players, kozer_suit, discard, deck):
 				_buffer.append(card_to_def)
 				_buffer.append(card_to_def_with)
 
-			# attacker optionally add cards
+			# attackers optionally add cards
+			logger.info("Boutta hit up round_addCards, cardCount passed in as: " + str(cardCount))
 			cardsToAdd = round_addCards(attacking_players, defender, MAXCARDS, cardCount, _buffer, _cardsToDefend)
+			cardCount += len(cardsToAdd)
+			logger.info("inside playARound right afer round_addCards, cardCount = " + str(cardCount))
 
 			# See if someone won (from adding cards), and return winner
 			cw = checkWinner(players, len(deck))
@@ -431,13 +437,12 @@ def checkBeats(atkCard, defCard, kozer):
 
 def returnPlayersInOrder(players, defender):
 	numPlayers = len(players)
-	for i in range(numPlayers):
-		if players[i] == defender:
-			if defender.justTook:
-				nextPlayer = (i + 1) % numPlayers
-				return players[nextPlayer:] + players[:nextPlayer]
-			else:
-				return players[i:] + players[i:]
+	index = players.index(defender) # position of defender in [players]
+	if defender.justTook:
+		nextPlayer = (index + 1) % numPlayers
+		return players[nextPlayer:] + players[:nextPlayer]
+	else:
+		return players[:index] + players[index:]
 
 def durakSort(arr): # uses quicksort
 	# sort kozers and nonKozers seperately
@@ -468,16 +473,19 @@ def round_addCards(attacking_players, defender, MAXCARDS, cardCount, _buffer, _c
 	cardsJustAdded = []
 	print(colored("DEFENDER("+defender.name+") CARD COUNT:"+str(len(defender.hand)),'yellow'))
 	print(colored("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount), 'yellow'))
+	logger.info("DEFENDER("+defender.name+") CARD COUNT:"+str(len(defender.hand)))
+	logger.info("NUM CARDS CAN BE ADDED: " + str(MAXCARDS - cardCount))
 	
 	for player in attacking_players:
+		logger.info("right before player.addCards, cardCount = " + str(cardCount))
 		cardsToAdd = player.addCards(_buffer + _cardsToDefend + cardsJustAdded, MAXCARDS-cardCount, len(_buffer))
 		cardCount += len(cardsToAdd)
 		cardsJustAdded += cardsToAdd
 		logger.info(player.name + " adds: " + prettyShort(cardsToAdd))	
 		logger.info("(inside round_addCards) Num cards that can be added is now: "+str(MAXCARDS-cardCount))
 		print(colored("(" + player.name + ") adds: " + prettyShort(cardsToAdd) ,'yellow'))
-
-	return cardsToAdd
+	logger.info("Inside round_addCards FINALLY boutta return cardsJustAdded = " + prettyShort(cardsJustAdded))
+	return cardsJustAdded
 
 def createDurakDeck():
 	deck_ = pd.Deck()

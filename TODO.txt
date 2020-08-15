@@ -17,6 +17,8 @@ FOR dumbAI:
 	FOR ADDCARDS():
 		- if opponent has lots of 'junk' on the table, add kozer (if kozer < J)
 		- if endGame may be useful to add high Kozers
+	FOR DEFEND():
+		- if cant beat all cards infront of you, just take
 
 LONG TERM
 	- make all print messages functions 
